@@ -3,7 +3,7 @@ Contributors: xpeedstudio, Ataurr, emranio
 Tags: rating plugin, WordPress review plugin, customer review, user review, service review
 Requires at least: 5.0
 Tested up to: 6.6
-Stable tag: 2.3.4
+Stable tag: 2.3.5
 Requires PHP: 7.4
 Languages: English, Japanese
 License: GPLv3
@@ -128,6 +128,9 @@ You can manage your reviews from the all reviews section of the plugin. There ar
 [Browse the code](https://plugins.trac.wordpress.org/browser/wp-ultimate-review/), check out the  [SVN repository](https://plugins.svn.wordpress.org/wp-ultimate-review/), or subscribe to the  [development log](https://plugins.trac.wordpress.org/log/wp-ultimate-review/)  by  [RSS](https://plugins.trac.wordpress.org/log/wp-ultimate-review/?limit=100&mode=stop_on_copy&format=rss).
 
 ## Changelog
+
+Version 2.3.5 //2024-11-12
+-Fixed: Google recaptcha validation issue.
 
 Version 2.3.4// 2024-07-25
 -Fixed: Warning notice on block editor

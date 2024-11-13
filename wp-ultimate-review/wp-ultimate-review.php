@@ -5,7 +5,7 @@
  * Description: The most advanced WordPress Review Plugin
  * Plugin URI: https://wpmet.com/
  * Author: Wpmet
- * Version: 2.3.4
+ * Version: 2.3.5
  * Author URI: https://wpmet.com/
  * Text Domain: wp-ultimate-review
  * License: GPLv3
@@ -18,9 +18,9 @@ defined('ABSPATH') || exit;
  * Defining static values as global constants
  * @since 1.0.0
  */
-define('WUR_REVIEW_VERSION', '2.3.4');
+define('WUR_REVIEW_VERSION', '2.3.5');
 
-define('WUR_REVIEW_PREVIOUS_STABLE_VERSION', '2.3.3');
+define('WUR_REVIEW_PREVIOUS_STABLE_VERSION', '2.3.4');
 
 define('WUR_REVIEW_KEY', 'wp_ultimate_review');
 

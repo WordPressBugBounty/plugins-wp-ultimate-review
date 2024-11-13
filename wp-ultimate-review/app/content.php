@@ -449,31 +449,25 @@ class Content {
 			'response' => $response_token
 		);
 
-		$options = array(
-			'http' => array(
-				'header' => "Content-type: application/x-www-form-urlencoded\r\n",
-				'method' => 'POST',
-				'content' => http_build_query($data)
-			)
+		$args = array(
+			'body' => $data,
+			'headers' => array('Content-Type' => 'application/x-www-form-urlencoded'),
+			'method' => 'POST',
 		);
+		
+		$response = wp_remote_post('https://www.google.com/recaptcha/api/siteverify', $args);
 
-		$verify_url = 'https://www.google.com/recaptcha/api/siteverify';
-		$context = stream_context_create($options);
-		$api_response = file_get_contents($verify_url, false, $context);
-
-		if ($api_response === false) {
+		if (is_wp_error($response)) {
 			return false;
 		}
-
-		// Decode the API response
-		$api_response = json_decode($api_response);
-
-		if ( !$api_response->success || empty($response_token) ) {
-			
-			return false;
+		
+		$api_response = json_decode(wp_remote_retrieve_body($response));
+		
+		if (isset($api_response->success) && $api_response->success && !empty($response_token)) {
+			return true;
 		}
-
-		return true;
+		
+		return false;
 	}
 
 	/**
