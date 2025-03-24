@@ -180,7 +180,7 @@ Class Cpt {
 
 		global $post;
 
-		if(!property_exists($post, 'ID')) {
+		if (!is_object($post) || !property_exists($post, 'ID')) {
 			return '';
 		}
 
@@ -227,11 +227,15 @@ Class Cpt {
 
 		global $post;
 
+		if (!is_object($post) || !property_exists($post, 'ID')) {
+			return '';
+		}
+
 		$getPostTYpe = $post->post_type;
 
 		if(!property_exists($post, 'ID')) {
 			return '';
-		}
+		} 
 
 
 		if($getPostTYpe == $this->post_type) {
@@ -309,14 +313,15 @@ Class Cpt {
 						$review_score_limit         = isset($return_data_global_setting['review_score_limit']) ? $return_data_global_setting['review_score_limit'] : 5;
 						$valueData = [];
 
-						foreach($metaOverviewData['overview']['item'] as $value) {
-							$value['rat_range'] = $review_score_limit;
-							$valueData[]        = $value;
+						if (!empty($metaOverviewData['overview']['item'])) {
+							foreach ($metaOverviewData['overview']['item'] as $value) {
+								$value['rat_range'] = $review_score_limit;
+								$valueData[] = $value;
+							}
+							$metaOverviewData['overview']['item'] = $valueData;
 						}
 
-						$metaOverviewData['overview']['item'] = $valueData;
-
-						update_post_meta($post_id, $backend_form_key, Settings::_encode_json($metaOverviewData));
+						update_post_meta($post_id, $backend_form_key, json_encode($metaOverviewData, JSON_UNESCAPED_UNICODE));
 
 					} elseif(!empty($_POST[$frontend_form_key])) {
 

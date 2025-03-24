@@ -16,6 +16,9 @@ class Helper {
 
 	public static function avarage_final($loop, $limit, $avarage) {
 
+		if ($loop == 0 || $limit == 0) {
+			return 0;
+		}
 		return $limit * ($avarage / $loop / 100);
 	}
 
