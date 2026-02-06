@@ -1,9 +1,9 @@
 ==WP Ultimate Review==
-Contributors: xpeedstudio, Ataurr, emranio
+Contributors: Roxnor, Ataurr
 Tags: rating plugin, WordPress review plugin, customer review, user review, service review
 Requires at least: 5.0
-Tested up to: 6.7
-Stable tag: 2.3.6
+Tested up to: 6.9
+Stable tag: 2.3.7
 Requires PHP: 7.4
 Languages: English, Japanese
 License: GPLv3
@@ -128,6 +128,9 @@ You can manage your reviews from the all reviews section of the plugin. There ar
 [Browse the code](https://plugins.trac.wordpress.org/browser/wp-ultimate-review/), check out the  [SVN repository](https://plugins.svn.wordpress.org/wp-ultimate-review/), or subscribe to the  [development log](https://plugins.trac.wordpress.org/log/wp-ultimate-review/)  by  [RSS](https://plugins.trac.wordpress.org/log/wp-ultimate-review/?limit=100&mode=stop_on_copy&format=rss).
 
 ## Changelog
+
+Version 2.3.7 //2025-12-24
+ -Fixed: IP detection method warnings in admin settings.
 
 Version 2.3.6 //2025-03-23
 -Fixed: Conflict with GamiPress plugin.

@@ -93,6 +93,16 @@ class Content {
 			return $content;
 		}
 
+
+		// Avada Theme conflict check
+		$theme = wp_get_theme();
+		$is_active_theme = ($theme->name == 'Avada');
+
+		// Apply main query/loop checks only for Avada
+		if ( $is_active_theme && !in_the_loop() ) {
+			return $content;
+		}
+
 		// output for display settings. Get from options
 		$this->getPostType = $post->post_type;
 		$this->getPostId   = $post->ID;

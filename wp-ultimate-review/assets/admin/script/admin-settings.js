@@ -192,7 +192,10 @@ jQuery(function ($) {
 
 	$('#review_user_limit_by_id').change(function(){
 		let reivewLimitBy = $(this).val();
+		
+		// Show/hide IP Detection Method based on selection
 		if(reivewLimitBy === "ip"){
+			$('.wur-ip-detection-method-wrapper').slideDown(300);
 			cuteAlert({
 				img: 'cute-alert-img/info.svg',
 				type: "warning",
@@ -201,6 +204,30 @@ jQuery(function ($) {
 				buttonText: "Okay",
 				additionalClass: "ip-based-limit-disclaimer",
 			  })
+		} else {
+			$('.wur-ip-detection-method-wrapper').slideUp(300);
+		}
+	})
+
+	$('#ip_detection_method_id').change(function(){
+		let ipDetectionMethod = $(this).val();
+		
+		// Toggle warning messages
+		if(ipDetectionMethod === "proxy_headers"){
+			$('.wur-remote-addr-warning').hide();
+			$('.wur-proxy-headers-warning').show();
+			
+			cuteAlert({
+				img: 'cute-alert-img/info.svg',
+				type: "warning",
+				title: "Security Warning!",
+				message: "Proxy headers (X-Forwarded-For, CF-Connecting-IP) can be easily spoofed by attackers to bypass IP-based rate limiting. Only enable this option if you are behind a trusted proxy infrastructure (e.g., CloudFlare) with proper configuration. The secure default is REMOTE_ADDR only.",
+				buttonText: "I Understand",
+				additionalClass: "proxy-headers-security-warning",
+			  })
+		} else {
+			$('.wur-proxy-headers-warning').hide();
+			$('.wur-remote-addr-warning').show();
 		}
 	})
 

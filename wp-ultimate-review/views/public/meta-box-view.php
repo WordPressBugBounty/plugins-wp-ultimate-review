@@ -144,7 +144,7 @@ if($review_list == 'Yes' || isset($return_data_overview->overview->ratting->enab
 
 			$metaDataJson = get_post_meta($metaReviewID, 'xs_public_review_data', false);
 			if(is_array($metaDataJson) AND sizeof($metaDataJson) > 0) {
-				$getMetaData = json_decode(end($metaDataJson));
+				$getMetaData = Helper::_decode_json_unicode(end($metaDataJson));
 			} else {
 				$getMetaData = (object) [];
 			}
@@ -206,7 +206,7 @@ if($review_list == 'Yes' || isset($return_data_overview->overview->ratting->enab
 				$metaReviewID = get_the_ID();
 				$metaDataJson = get_post_meta($metaReviewID, 'xs_public_review_data', false);
 				if(is_array($metaDataJson) AND sizeof($metaDataJson) > 0) {
-					$getMetaData = json_decode(end($metaDataJson));
+					$getMetaData = Helper::_decode_json_unicode(end($metaDataJson));
 				} else {
 					$getMetaData = [];
 				}

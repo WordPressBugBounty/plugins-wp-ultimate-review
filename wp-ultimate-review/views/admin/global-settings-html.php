@@ -202,6 +202,44 @@ $active_tab = sanitize_text_field(wp_unslash(isset($_GET["tab"]) ? $_GET["tab"] 
                             </div>
                         </div>
                     </div><!-- Single Item -->
+
+                    <div class="wur-single-item wur-single-item-middle wur-ip-detection-method-wrapper" style="<?php echo $selectReviewUserLimtBy != 'ip' ? 'display:none;' : ''; ?>">
+                        <div class="wur-left-label">
+                            <label for="ip_detection_method_id"
+                                   class="wur-sec-title"><?php echo esc_html__('IP Detection Method', 'wp-ultimate-review'); ?></label>
+                        </div>
+                        <div class="wur-right-content">
+                            <div class="wur-global-select-wrapper">
+                                <select name="<?php echo esc_attr($global_setting_optionKey); ?>[ip_detection_method]"
+                                        id="ip_detection_method_id" class="wur-global-select">
+									<?php
+									$selectIpDetectionMethod = isset($return_data_global_setting['ip_detection_method']) ? $return_data_global_setting['ip_detection_method'] : 'remote_addr';
+                                    ?>
+                                    <option <?php echo esc_attr($selectIpDetectionMethod == 'remote_addr' ? 'selected' : '') ?> value="remote_addr"><?php echo esc_html__('Secure (REMOTE_ADDR only)', 'wp-ultimate-review')?></option>
+                                    <option <?php echo esc_attr($selectIpDetectionMethod == 'proxy_headers' ? 'selected' : '') ?> value="proxy_headers"><?php echo esc_html__('Proxy Headers (CloudFlare, X-Forwarded-For)', 'wp-ultimate-review')?></option>
+                                </select>
+                            </div>
+                            <div class="wur-ip-detection-warnings" style="margin-top: 10px;">
+                                <div class="wur-ip-warning wur-remote-addr-warning" style="<?php echo esc_attr($selectIpDetectionMethod == 'remote_addr' ? '' : 'display:none;'); ?>">
+                                    <label class="wur-review-type-help-label">
+                                        <span class="wur-review-type-help-label--text">
+                                            <?php echo esc_html__('Recommended: Uses REMOTE_ADDR which cannot be spoofed by clients. This is the most secure option for IP-based rate limiting.', 'wp-ultimate-review'); ?>
+                                        </span>
+                                        <span class="wur-review-type-help-label--icon dashicons-before dashicons-warning"></span>
+                                    </label>
+                                </div>
+                                <div class="wur-ip-warning wur-proxy-headers-warning" style="<?php echo esc_attr($selectIpDetectionMethod == 'proxy_headers' ? '' : 'display:none;'); ?>">
+                                    <label class="wur-review-type-help-label">
+                                        <span class="wur-review-type-help-label--text">
+                                            <?php echo esc_html__('⚠ Warning: Proxy headers (X-Forwarded-For, CF-Connecting-IP) can be easily spoofed by attackers to bypass IP-based rate limiting. Only use this if you are behind a trusted proxy infrastructure (e.g., CloudFlare) with proper configuration.', 'wp-ultimate-review'); ?>
+                                        </span>
+                                        <span class="wur-review-type-help-label--icon dashicons-before dashicons-warning"></span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div><!-- Single Item -->
+
                     <div class="wur-single-item wur-single-item-middle">
                         <div class="wur-left-label">
                             <label for="review_score_style_id"

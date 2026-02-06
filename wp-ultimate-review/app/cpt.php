@@ -99,7 +99,7 @@ Class Cpt {
 					$metaReviewID = $post->ID;
 					$metaDataJson = get_post_meta($metaReviewID, 'xs_public_review_data', false);
 					if(is_array($metaDataJson) AND sizeof($metaDataJson) > 0) {
-						$getMetaData = json_decode($metaDataJson[0]);
+						$getMetaData = \WurReview\Helper\Helper::_decode_json_unicode($metaDataJson[0]);
 					} else {
 						$getMetaData = [];
 					}
@@ -405,7 +405,7 @@ Class Cpt {
 		$metaReviewID = $post->ID;
 		$metaDataJson = get_post_meta($metaReviewID, 'xs_public_review_data', false);
 		if(is_array($metaDataJson) AND sizeof($metaDataJson) > 0) {
-			$getMetaData = json_decode($metaDataJson[0]);
+			$getMetaData = \WurReview\Helper\Helper::_decode_json_unicode($metaDataJson[0]);
 		} else {
 			$getMetaData = [];
 		}
