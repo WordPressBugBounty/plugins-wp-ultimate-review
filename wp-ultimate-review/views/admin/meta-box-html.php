@@ -104,9 +104,9 @@ defined( 'ABSPATH' ) || exit;
 					$reviwerEmail = isset($user_info->user_email) ? $user_info->user_email : '';
 					$userInfoData = '';
 					if($metaKey == 'xs_reviwer_name'){
-						$userInfoData = '<a href="'.esc_attr(get_edit_user_link( $xs_author_user )).'" target="_blank"> '.$reviwerName.' </a>';
-					}else if($metaKey == 'xs_reviwer_email'){
-						$userInfoData = '<a href="'.esc_attr(get_edit_user_link( $xs_author_user )).'" target="_blank"> '.$reviwerEmail.' </a>';
+					$userInfoData = '<a href="'.esc_attr(get_edit_user_link( $xs_author_user )).'" target="_blank"> '.esc_html($reviwerName).' </a>';
+				}else if($metaKey == 'xs_reviwer_email'){
+					$userInfoData = '<a href="'.esc_attr(get_edit_user_link( $xs_author_user )).'" target="_blank"> '.esc_html($reviwerEmail).' </a>';
 					}
 					?>
                     <div class="xs-review xs-reviwer-title" style="">

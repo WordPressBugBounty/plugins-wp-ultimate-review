@@ -417,9 +417,9 @@ Class Cpt {
 		$customPostType = isset($getMetaData->xs_post_type) ? $getMetaData->xs_post_type : '';
 		$parent_post = get_post($customPOstId);
 		if(is_object($parent_post)) {
-			$parentTitle = __(isset($parent_post->post_title) ? $parent_post->post_title : '');
+			$parentTitle = isset($parent_post->post_title) ? $parent_post->post_title : '';
 			$parentUrl   = get_permalink(isset($parent_post->ID) ? $parent_post->ID : 0);
-			$postUrlData = '<a href="' . esc_url($parentUrl) . '" target="_blank"> ' . $parentTitle . ' </a>';
+			$postUrlData = '<a href="' . esc_url($parentUrl) . '" target="_blank"> ' . esc_html($parentTitle) . ' </a>';
 		}
 
 		// reviwer information

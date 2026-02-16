@@ -190,7 +190,7 @@ class Content {
 			return false;
 		}
 
-		
+
 		$content_meta_key = 'xs_submit_review_data';
 		
 		if(isset($_POST['xs_review_form_public_data']) ) {
@@ -207,8 +207,7 @@ class Content {
 				}
 				
 				if( !$this->is_captcha_valid($secret_key, $response_token) ){
-					$msg = esc_html__('reCaptcha is not valid!', 'wp-ultimate-review');
-					$_SESSION['xs_review_message'] = $msg;
+					$_SESSION['xs_review_message'] = __('reCaptcha is not valid!', 'wp-ultimate-review');
 
 					return false;
 				}
@@ -217,7 +216,7 @@ class Content {
 			// get meta content data for review
 			$metaReviewData = isset($_POST[$content_meta_key]) ? $_POST[$content_meta_key] : []; //phpcs:ignore sanitization done in array with self custom function
 			$metaReviewData = Settings::sanitize($metaReviewData);
-			$main_post_id = isset($metaReviewData['xs_post_id']) ? $metaReviewData['xs_post_id'] : false;
+			$main_post_id = isset($metaReviewData['xs_post_id']) ? absint($metaReviewData['xs_post_id']) : false;
 
 			//If someone try bypassing review (without login on private post) or (without password on protected post) then return false
 			if( $main_post_id == false || post_password_required( $main_post_id ) || ( $this->is_review_from_private_post( $main_post_id ) && !current_user_can('read_post', $main_post_id)) ){
@@ -237,8 +236,7 @@ class Content {
 						if((isset($requireValue['require']) ? $requireValue['require'] : 'No') == 'Yes') :
 							$checkDataRequire = trim(isset($metaReviewData[$requireKey]) ? $metaReviewData[$requireKey] : '');
 							if(strlen($checkDataRequire) == 0) {
-								$msg = esc_html__('Please fill up all require filed', 'wp-ultimate-review');
-								$_SESSION['xs_review_message'] = $msg;
+								$_SESSION['xs_review_message'] = __('Please fill up all required fields', 'wp-ultimate-review');
 
 								return false;
 							}
@@ -259,7 +257,7 @@ class Content {
 
 				if($review_user_limit_by == 'browser') {
 
-					$post_limit_cookie_name = 'xs_review_user_post_limit_' . $metaReviewData['xs_post_id'];
+					$post_limit_cookie_name = 'xs_review_user_post_limit_' . absint($metaReviewData['xs_post_id']);
 
 					if(isset($_COOKIE[$post_limit_cookie_name])) {
 
@@ -276,18 +274,18 @@ class Content {
 					} else {
 						$re_review = true;
 
-						$post_limit_cookie = ['post_id' => $metaReviewData['xs_post_id'], 'limit' => 1];
+						$post_limit_cookie = ['post_id' => absint($metaReviewData['xs_post_id']), 'limit' => 1];
 					}
 				} else {
 					if($review_user_limit_by == 'email') {
 						$args_type = [
 							'key'   => 'xs_reviwer_email',
-							'value' => isset($metaReviewData['xs_reviwer_email']) ? $metaReviewData['xs_reviwer_email'] : $ip,
+							'value' => isset($metaReviewData['xs_reviwer_email']) ? sanitize_email($metaReviewData['xs_reviwer_email']) : filter_var($ip, FILTER_VALIDATE_IP),
 						];
 					} else {
 						$args_type = [
 							'key'   => 'xs_reviews_ip',
-							'value' => $ip,
+							'value' => filter_var($ip, FILTER_VALIDATE_IP),
 						];
 					}
 					$args    = [
@@ -295,7 +293,7 @@ class Content {
 						'meta_query' => [
 							[
 								'key'   => 'xs_main_post_id',
-								'value' => $metaReviewData['xs_post_id'],
+								'value' => absint($metaReviewData['xs_post_id']),
 							],
 							$args_type,
 						],
@@ -315,7 +313,7 @@ class Content {
 					$metaReviewData['review_score_style'] = isset($return_data_global_setting['review_score_style']) ? $return_data_global_setting['review_score_style'] : 'star';
 					$metaReviewData['review_score_limit'] = isset($return_data_global_setting['review_score_limit']) ? $return_data_global_setting['review_score_limit'] : 5;
 					$metaReviewData['review_score_input'] = isset($return_data_global_setting['review_score_input']) ? $return_data_global_setting['review_score_input'] : 'star';
-					$metaReviewData['xs_reviews_ip']      = $ip;
+					$metaReviewData['xs_reviews_ip']      =  filter_var($ip, FILTER_VALIDATE_IP);
 					
 					//if someone try to bypass the review limit and submit the review with rating which is greater than review score limit then set rating to review score limit.
 					if( isset($metaReviewData['xs_reviwer_ratting']) && $metaReviewData['xs_reviwer_ratting'] > $metaReviewData['review_score_limit'] ){
@@ -353,19 +351,22 @@ class Content {
 							update_post_meta($getPostId, 'xs_reviwer_email', isset($metaReviewData['xs_reviwer_email']) ? $metaReviewData['xs_reviwer_email'] : $ip);
 							update_post_meta($getPostId, 'xs_reviews_ip', $ip);
 
-							$msg = esc_html__('Successfully submitted review', 'wp-ultimate-review');
-							$_SESSION['xs_review_message'] = $msg;
+							$_SESSION['xs_review_message'] = __('Successfully submitted review', 'wp-ultimate-review');
 							if($review_user_limit_by == 'browser') {
 								setcookie($post_limit_cookie_name, json_encode($post_limit_cookie), (time() + 3600), site_url());
 							}
 							// email subject
-							$subject = ' Review of ' . $postarr['post_title'] . ' ';
+							$post_title = isset($postarr['post_title']) ? sanitize_text_field($postarr['post_title']) : 'Review';
+							$subject = sprintf(
+								esc_html__('Review of %s', 'wp-ultimate-review'),
+								$post_title
+							);
 							// email details
 							$mailDetails = '';
 							foreach($this->controls as $metaKeyFiled => $metaValueFiled) :
 								if(isset($metaReviewData[$metaKeyFiled])) {
-									$inputTitle  = (isset($metaValueFiled) and is_array($metaValueFiled) and array_key_exists('title_name', $metaValueFiled)) ? $metaValueFiled['title_name'] : '';
-									$mailDetails .= ' ' . $inputTitle . ' : ' . $metaReviewData[$metaKeyFiled] . ' /n';
+									$inputTitle  = (isset($metaValueFiled) and is_array($metaValueFiled) and array_key_exists('title_name', $metaValueFiled)) ? sanitize_text_field($metaValueFiled['title_name']): '';
+										$mailDetails .= ' ' . sanitize_text_field($inputTitle) . ' : ' . sanitize_text_field($metaReviewData[$metaKeyFiled]) . "\n";
 								}
 							endforeach;
 
@@ -376,7 +377,7 @@ class Content {
 							}
 							// check user email enable and send email
 							if((isset($return_data_global_setting['send_author']) ? $return_data_global_setting['send_author'] : 'No') == 'Yes') {
-								$getUserEmail = isset($metaReviewData['xs_reviwer_email']) ? $metaReviewData['xs_reviwer_email'] : '';
+								$getUserEmail = isset($metaReviewData['xs_reviwer_email']) ? sanitize_email( $metaReviewData['xs_reviwer_email'] ) : '';
 								if(strlen($getUserEmail) > 0) :
 									wp_mail($getUserEmail, $subject, $mailDetails);
 								endif;
@@ -387,8 +388,7 @@ class Content {
 					}
 				}
 
-				$msg = esc_html__('Already submitted review', 'wp-ultimate-review');
-				$_SESSION['xs_review_message'] = $msg;
+				$_SESSION['xs_review_message'] = __('Already submitted review', 'wp-ultimate-review');
 			endif;
 		}
 	}
@@ -538,7 +538,7 @@ class Content {
 
 		$postId = (int)isset($atts['post-id']) ? $atts['post-id'] : 0;
 
-		$className = isset($atts['class']) ? $atts['class'] : '';
+		$className = isset( $atts['class'] ) ? sanitize_html_class( $atts['class'] ) : '';
 		$reviewBox = isset($atts['overview']) ? $atts['overview'] : 'no';
 
 		if($postId != 0) {
@@ -563,7 +563,7 @@ class Content {
 		}
 
 		$postId    = (int)isset($atts['post-id']) ? $atts['post-id'] : 0;
-		$className = isset($atts['class']) ? $atts['class'] : '';
+		$className = isset( $atts['class'] ) ? sanitize_html_class( $atts['class'] ) : '';
 		$reviewBox = isset($atts['overview']) ? $atts['overview'] : 'no';
 
 		if($postId != 0) {
@@ -710,10 +710,10 @@ class Content {
 		$rattingStyle = isset($atts['ratting-style']) ? $atts['ratting-style'] : 'star';
 		$countShow    = isset($atts['count-show']) ? $atts['count-show'] : 'yes';
 		$voteShow     = isset($atts['vote-show']) ? $atts['vote-show'] : 'yes';
-		$voteText     = isset($atts['vote-text']) ? $atts['vote-text'] : 'Votes';
+    	$voteText     = isset($atts['vote-text']) ? sanitize_text_field($atts['vote-text']) : 'Votes';
 		$return       = isset($atts['return-type']) ? $atts['return-type'] : '';
 
-		$className = isset($atts['class']) ? $atts['class'] : '';
+		$className = isset( $atts['class'] ) ? sanitize_html_class( $atts['class'] ) : '';
 		$idName    = isset($atts['id']) ? $atts['id'] : '';
 		if($postId > 0) {
 
@@ -814,10 +814,10 @@ class Content {
 					}
 				endif;
 				if($countShow == 'yes'):
-					$contentRatting .= '<span class="wp-ratting-number"> ' . $overViewTotal . '  </span>';
+					$contentRatting .= '<span class="wp-ratting-number"> ' . esc_html( $totalRattingsCount ) . '  </span>';
 				endif;
 				if($voteShow == 'yes'):
-					$contentRatting .= '<span class="wp-ratting-vote"> ' . $totalRattingsCount . '  ' . $voteText . '</span>';
+					$contentRatting .= '<span class="wp-ratting-vote"> ' . esc_html( $totalRattingsCount ) . '  ' . esc_html($voteText) . '</span>';
 				endif;
 				$contentRatting .= '</div>';
 			endif;
@@ -923,7 +923,7 @@ class Content {
 		$tarring   = '';
 		$tarring   .= '<div class="xs-review-rattting xs-percentange xs-point">';
 		$widthData = ($rat * 100) / $max;
-		$tarring   .= '<div style="width:' . $widthData . '%;" class="percentange_check"><span class="show-per-data">' . round($widthData) . '%</span></div>';
+		$tarring   .= '<div style="width:' . esc_attr( $widthData ) . '%;" class="percentange_check"><span class="show-per-data">' . esc_html( round( $widthData ) ) . '%</span></div>';
 		$tarring   .= '</div>';
 
 		return $tarring;
@@ -970,8 +970,8 @@ class Content {
 				'current'   => max(1, $paged),
 				'total'     => $max_page,
 				'mid_size'  => 1,
-				'prev_text' => __('«'),
-				'next_text' => __('»'),
+				'prev_text' => '«',
+				'next_text' => '»',
 				'type'      => 'list',
 			)), Settings::kses(null,true)); // Settings::kses(null,true) will return the allowed tags array
 		}

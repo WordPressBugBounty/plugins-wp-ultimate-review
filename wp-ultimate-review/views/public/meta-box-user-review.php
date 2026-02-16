@@ -106,7 +106,7 @@ if($review_list == 'Yes' || isset($post_review_meta->overview->ratting->enable))
 
 			if(isset($global_setting['review_user_average']) && $global_setting['review_user_average'] == 'Yes'):
 
-				echo ' ( ' . esc_html__(round($avarage, 1)) . esc_html__(' out of ', 'wp-ultimate-review') . esc_html__($score_limit) . ' )';
+				echo ' ( ' . esc_html(round($avarage, 1)) . esc_html__(' out of ', 'wp-ultimate-review') . esc_html($score_limit) . ' )';
 
 			endif; ?>
         </h3>
