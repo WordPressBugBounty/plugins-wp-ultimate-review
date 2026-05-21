@@ -12,6 +12,7 @@ abstract class Rest_Api_Base {
 
 
 	abstract public function config();
+	abstract public function check_permissions($request);
 
 
 	public function __construct() {
@@ -25,7 +26,7 @@ abstract class Rest_Api_Base {
 			register_rest_route(untrailingslashit(WUR_REST_NAMESPACE.'/v1/' . $this->prefix), '/(?P<action>\w+)/' . ltrim($this->param, '/'), array(
 				'methods'  => \WP_REST_Server::ALLMETHODS,
 				'callback' => [$this, 'action'],
-				'permission_callback' => '__return_true',
+				'permission_callback' => [$this, 'check_permissions'],
 			));
 		});
 	}
@@ -33,11 +34,25 @@ abstract class Rest_Api_Base {
 
 	public function action($request) {
 		$this->request = $request;
-		$action_class  = strtolower($this->request->get_method()) . '_' . sanitize_key($this->request['action']);
+		// Sanitize inputs
+		$method = strtolower($this->request->get_method());
+		$action = isset($this->request['action']) ? sanitize_key($this->request['action']) : '';		
+		// Build handler method name (e.g., 'post_create', 'get_list')
+		$action_class = $method . '_' . $action;
 
 		if(method_exists($this, $action_class)) {
 			return $this->{$action_class}();
 		}
+		
+		// Handler method not found - return error
+		return new \WP_Error(
+			'rest_invalid_action',
+			sprintf(
+				esc_html__('Action "%s" not found.', 'wp-ultimate-review'),
+				esc_html($action_class)
+			),
+			array('status' => 404)
+		);
 	}
 
 }

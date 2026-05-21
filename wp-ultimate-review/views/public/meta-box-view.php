@@ -598,12 +598,6 @@ if($viewRattingPage == 'Yes'):
 					//this hooks called from pro version
 					do_action('wur_recaptcha_show');
 				?>
-                <input type="hidden" value="<?php echo esc_attr($this->getPostId); ?>"
-                       name="<?php echo esc_attr($content_meta_key); ?>[xs_post_id]"/>
-                <input type="hidden" value="<?php echo esc_attr($this->getPostType); ?>"
-                       name="<?php echo esc_attr($content_meta_key); ?>[xs_post_type]"/>
-                <input type="hidden" value="<?php echo esc_attr(get_current_user_id()); ?>"
-                       name="<?php echo esc_attr($content_meta_key); ?>[xs_post_author]"/>
 				<?php wp_nonce_field('meta-box-review-nonce'); //phpcs:ignore ?>
                 <div class="xs-review xs-save-button">
                     <button type="submit" name="xs_review_form_public_data"

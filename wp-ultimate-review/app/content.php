@@ -216,6 +216,22 @@ class Content {
 			// get meta content data for review
 			$metaReviewData = isset($_POST[$content_meta_key]) ? $_POST[$content_meta_key] : []; //phpcs:ignore sanitization done in array with self custom function
 			$metaReviewData = Settings::sanitize($metaReviewData);
+
+			// Security: derive post ID from the actual requested URL rather than trusting
+			// the client-submitted hidden field, which is trivially forgeable.
+			$request_uri    = isset( $_SERVER['REQUEST_URI'] ) ? sanitize_text_field( wp_unslash( $_SERVER['REQUEST_URI'] ) ) : '';
+			$server_post_id = absint( url_to_postid( home_url( $request_uri ) ) );
+			if ( $server_post_id > 0 ) {
+				// Cast to string so json_encode produces "xs_post_id":"5" (quoted),
+				// matching the LIKE query format used by the frontend review list.
+				$metaReviewData['xs_post_id']   = (string) $server_post_id;
+				$metaReviewData['xs_post_type'] = get_post_type( $server_post_id );
+			}
+
+			// Security: always use the actual current user ID — never the client-supplied
+			// value, which could be set to an arbitrary user to spoof identity / leak PII.
+			$metaReviewData['xs_post_author'] = get_current_user_id();
+
 			$main_post_id = isset($metaReviewData['xs_post_id']) ? absint($metaReviewData['xs_post_id']) : false;
 
 			//If someone try bypassing review (without login on private post) or (without password on protected post) then return false
