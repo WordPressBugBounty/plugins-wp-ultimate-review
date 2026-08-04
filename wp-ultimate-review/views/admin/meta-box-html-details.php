@@ -83,7 +83,7 @@ $overview_setting_optionKey = 'xs_review_overview_settings';
                 <input id="wp_review_heading"
                        class="wur-global-input"
                        type="text"
-                       placeholder="Overview heading"
+                       placeholder="<?php esc_attr_e('Overview heading', 'wp-ultimate-review'); ?>"
                        value="<?php echo esc_attr($selectOverviewHeading); ?>"
                        name="xs_review_overview_settings[overview][heading]">
 
@@ -105,7 +105,7 @@ $overview_setting_optionKey = 'xs_review_overview_settings';
 					<?php
 					$selectOverviewSummary = isset($saved_meta->overview->summary->data) ? $saved_meta->overview->summary->data : '';
 					?>
-                    <textarea class="wur-global-text-area" type="text" placeholder="Overview summary"
+                    <textarea class="wur-global-text-area" type="text" placeholder="<?php esc_attr_e('Overview summary', 'wp-ultimate-review'); ?>"
                               name="xs_review_overview_settings[overview][summary][data]"><?php echo esc_html($selectOverviewSummary); ?></textarea>
                 </div>
             </div>

@@ -66,7 +66,7 @@ class Helper {
 
 		return [
 			'xs_reviwer_ratting' => [
-				'title_name' => 'Rating',
+				'title_name' => esc_html__('Rating', 'wp-ultimate-review'),
 				'type'       => 'select',
 				'id'         => 'xs_ratting_id',
 				'require'    => 'Yes',
@@ -80,32 +80,32 @@ class Helper {
 				],
 			],
 			'xs_reviw_title'     => [
-				'title_name' => 'Review Title',
+				'title_name' => esc_html__('Review Title', 'wp-ultimate-review'),
 				'type'       => 'text',
 				'require'    => 'Yes',
 				'options'    => [],
 			],
 
 			'xs_reviwer_name'    => [
-				'title_name' => 'Reviewer Name',
+				'title_name' => esc_html__('Reviewer Name', 'wp-ultimate-review'),
 				'type'       => 'text',
 				'require'    => 'No',
 				'options'    => [],
 			],
 			'xs_reviwer_email'   => [
-				'title_name' => 'Reviewer Email',
+				'title_name' => esc_html__('Reviewer Email', 'wp-ultimate-review'),
 				'type'       => 'text',
 				'require'    => 'Yes',
 				'options'    => [],
 			],
 			'xs_reviwer_website' => [
-				'title_name' => 'Website',
+				'title_name' => esc_html__('Website', 'wp-ultimate-review'),
 				'type'       => 'text',
 				'require'    => 'No',
 				'options'    => [],
 			],
 			'xs_reviw_summery'   => [
-				'title_name' => 'Review Summary',
+				'title_name' => esc_html__('Review Summary', 'wp-ultimate-review'),
 				'type'       => 'textarea',
 				'require'    => 'Yes',
 				'options'    => [],

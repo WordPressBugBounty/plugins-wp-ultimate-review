@@ -64,7 +64,7 @@ defined( 'ABSPATH' ) || exit;
 								<?php
 								for($ratting = 1; $ratting <= $review_score_limit; $ratting++ ):
 									?>
-                                    <option value="<?php echo esc_attr($ratting);?>" <?php esc_attr_e(($ratting == $metaData) ? 'selected' : '') ?> > <?php echo esc_html($ratting).' '; echo esc_attr((isset($getMetaData->review_score_style) && $reviwerScoreStyle == 'percentage') ? '%' : $reviwerScoreStyle);?> </option>
+                                    <option value="<?php echo esc_attr($ratting);?>" <?php echo esc_attr(($ratting == $metaData) ? 'selected' : ''); ?> > <?php echo esc_html($ratting).' '; echo esc_attr((isset($getMetaData->review_score_style) && $reviwerScoreStyle == 'percentage') ? '%' : $reviwerScoreStyle);?> </option>
 									<?php
 
 								endfor;

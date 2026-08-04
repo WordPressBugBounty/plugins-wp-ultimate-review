@@ -9,7 +9,11 @@ $active_tab = sanitize_text_field(wp_unslash(isset($_GET["tab"]) ? $_GET["tab"] 
             <div 0="XS_Social_Login_Settings" id="XS_Social_Login_Settings"
                  class="updated admin-page-framework-settings-notice-message admin-page-framework-settings-notice-container notice is-dismissible"
                  style="margin: 1em 0px; visibility: visible; opacity: 1;">
-                <p><?php echo esc_html__('' . $message_text . ' data have been updated.', 'wp-ultimate-review'); ?></p>
+                <p><?php printf(
+					/* translators: %s: settings section name, e.g. "Global Settings" */
+					esc_html__('%s data have been updated.', 'wp-ultimate-review'),
+					$message_text
+				); ?></p>
                 <button type="button" class="notice-dismiss"><span
                             class="screen-reader-text"><?php echo esc_html__('Dismiss this notice.', 'wp-ultimate-review'); ?></span>
                 </button>
@@ -388,7 +392,7 @@ $active_tab = sanitize_text_field(wp_unslash(isset($_GET["tab"]) ? $_GET["tab"] 
                         <div class="wur-criteria-box-container">
 
                             <div class="wur-criteria-box  wur-meta-box-container">
-                                <div class="wur-criteria-head">Product Criteria</div>
+                                <div class="wur-criteria-head"><?php esc_html_e('Product Criteria', 'wp-ultimate-review'); ?></div>
                                 <div class="wur-criteria-content">
                                     <div class="repater-overview-item">
                                         <button type="button"
@@ -396,7 +400,7 @@ $active_tab = sanitize_text_field(wp_unslash(isset($_GET["tab"]) ? $_GET["tab"] 
                                                 data-criteria-limit="<?php echo esc_attr($limits['product_criteria']) ?>"
                                                 class="add-product-criteria  xs-review-btnAdd xs-review-add-button xs-review-btn xs-btn btn-special small"
                                         >
-                                            <span class="dashicons dashicons-plus"></span>Add
+                                            <span class="dashicons dashicons-plus"></span><?php esc_html_e('Add', 'wp-ultimate-review'); ?>
                                         </button>
 
 										<?php
@@ -415,7 +419,7 @@ $active_tab = sanitize_text_field(wp_unslash(isset($_GET["tab"]) ? $_GET["tab"] 
                                                             type="text"
                                                             name="<?php echo esc_attr( $global_setting_criteria_key ); ?>[product][criteria_names][]"
                                                             value="<?php echo esc_attr( $criteria) ?>"
-                                                            placeholder="Criteria Name"
+                                                            placeholder="<?php esc_attr_e('Criteria Name', 'wp-ultimate-review'); ?>"
                                                             class="wur-global-input"
                                                     >
                                                 </div>
@@ -435,14 +439,14 @@ $active_tab = sanitize_text_field(wp_unslash(isset($_GET["tab"]) ? $_GET["tab"] 
                         <div class="wur-criteria-box-container">
 
                             <div class="wur-criteria-box  wur-meta-box-container">
-                                <div class="wur-criteria-head">Post/Page Criteria</div>
+                                <div class="wur-criteria-head"><?php esc_html_e('Post/Page Criteria', 'wp-ultimate-review'); ?></div>
                                 <div class="wur-criteria-content">
                                     <div class="repater-overview-item" id="repater_review_item">
                                         <button type="button"
                                                 data-type="post"
                                                 data-criteria-limit="<?php echo esc_attr($limits['post_criteria']) ?>"
                                                 class="add-product-criteria xs-review-btnAdd xs-review-add-button xs-review-btn xs-btn btn-special small">
-                                            <span class="dashicons dashicons-plus"></span>Add
+                                            <span class="dashicons dashicons-plus"></span><?php esc_html_e('Add', 'wp-ultimate-review'); ?>
                                         </button>
 
                                         <?php
@@ -455,7 +459,7 @@ $active_tab = sanitize_text_field(wp_unslash(isset($_GET["tab"]) ? $_GET["tab"] 
                                                             type="text"
                                                             name="<?php echo esc_attr( $global_setting_criteria_key ); ?>[post][criteria_names][]"
                                                             value="<?php echo esc_attr($criteria) ?>"
-                                                            placeholder="Criteria Name"
+                                                            placeholder="<?php esc_attr_e('Criteria Name', 'wp-ultimate-review'); ?>"
                                                             class="wur-global-input"
                                                     >
                                                 </div>
@@ -685,13 +689,13 @@ $active_tab = sanitize_text_field(wp_unslash(isset($_GET["tab"]) ? $_GET["tab"] 
 							if(is_array($this->controls) AND sizeof($this->controls) > 0):
 								// add new element of post date in array
 								$this->controls['xs_reviwer_profile_image'] = [
-									'title_name' => 'Reviewer Profile Image',
+									'title_name' => esc_html__('Reviewer Profile Image', 'wp-ultimate-review'),
 									'type'       => 'image',
 									'require'    => 'No',
 									'options'    => [],
 								];
 								$this->controls['post_date'] = [
-									'title_name' => 'Review Date',
+									'title_name' => esc_html__('Review Date', 'wp-ultimate-review'),
 									'type'       => 'date',
 									'require'    => 'No',
 									'options'    => [],
@@ -719,7 +723,11 @@ $active_tab = sanitize_text_field(wp_unslash(isset($_GET["tab"]) ? $_GET["tab"] 
                                             <label for="enable_display__<?= esc_attr($metaKey); ?>"
                                                    class="review_switch_button_label"></label>
                                             <label for="enable_display__<?php echo esc_attr($metaKey); ?>"
-                                                   class="review-switch-text wur-review-switch-text"><?php echo esc_html__('Enable "' . $inputTitle . '"', 'wp-ultimate-review'); ?></label>
+                                                   class="review-switch-text wur-review-switch-text"><?php printf(
+														/* translators: %s: form field label, e.g. "Reviewer Name" */
+														esc_html__('Enable "%s"', 'wp-ultimate-review'),
+														esc_html($inputTitle)
+													); ?></label>
                                         </div>
                                     </div>
 
@@ -761,7 +769,7 @@ $active_tab = sanitize_text_field(wp_unslash(isset($_GET["tab"]) ? $_GET["tab"] 
                                     value="<?php echo esc_attr($val) ?>"/>
 
                             <label class="wur-review-type-help-label" for="label-test__xs_reviw_summery_name">
-                                <span class="wur-review-type-help-label--text">Shows under overview average rating value. i.e- 4.75 SUPERB!</span>
+                                <span class="wur-review-type-help-label--text"><?php esc_html_e('Shows under overview average rating value. i.e- 4.75 SUPERB!', 'wp-ultimate-review'); ?></span>
                                 <span class="wur-review-type-help-label--icon dashicons-before dashicons-warning"></span>
                             </label>
 
@@ -793,7 +801,7 @@ $active_tab = sanitize_text_field(wp_unslash(isset($_GET["tab"]) ? $_GET["tab"] 
                                     step="any"/>
 
                             <label class="wur-review-type-help-label" for="label-test__xs_reviw_summery_name">
-                                <span class="wur-review-type-help-label--text">Shows average rating text if only rating is grater than or equal given value here</span>
+                                <span class="wur-review-type-help-label--text"><?php esc_html_e('Shows average rating text if only rating is grater than or equal given value here', 'wp-ultimate-review'); ?></span>
                                 <span class="wur-review-type-help-label--icon dashicons-before dashicons-warning"></span>
                             </label>
 

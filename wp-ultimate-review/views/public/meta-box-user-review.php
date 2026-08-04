@@ -340,7 +340,7 @@ if($show_user_review_form): ?>
 			<?php
 			if(isset($_SESSION['xs_review_message']) && strlen(sanitize_text_field(wp_unslash($_SESSION['xs_review_message']))) > 4 && isset($_POST['xs_review_form_public_data']) ) { //phpcs:ignore  ?>
                 <div class="review_message_show">
-                    <p><?php echo esc_html(sanitize_text_field(wp_unslash($_SESSION['xs_review_message'])), 'wp-ultimate-review'); //phpcs:ignore (WordPress.Security.ValidatedSanitizedInput.MissingUnslash
+                    <p><?php echo esc_html(sanitize_text_field(wp_unslash($_SESSION['xs_review_message']))); //phpcs:ignore (WordPress.Security.ValidatedSanitizedInput.MissingUnslash
 						unset($_SESSION['xs_review_message']); ?></p>
                 </div>
 				<?php
@@ -508,7 +508,7 @@ if($show_user_review_form): ?>
                                     <textarea id="<?php echo esc_attr($inputId); ?>"
                                               class="widefat <?php echo esc_attr($inputClass); ?>"
                                               name="<?php echo esc_attr($content_meta_key); ?>[<?php echo esc_attr($inputName); ?>]" <?php echo esc_attr($requireSet); ?>
-                                              placeholder="<?php echo esc_html__($inputTitle, 'wp-ultimate-review'); ?>"><?php echo esc_attr($metaData); ?></textarea>
+                                              placeholder="<?php echo esc_attr($inputTitle); ?>"><?php echo esc_attr($metaData); ?></textarea>
 
 				            </div> <?php
 
@@ -518,7 +518,7 @@ if($show_user_review_form): ?>
 				                 style="<?php echo esc_attr($displayFiled); ?>">
 
 					            <input type="<?php echo esc_attr($inputType); ?>"
-					                   placeholder="<?php echo esc_html__($inputTitle, 'wp-ultimate-review'); ?>"
+					                   placeholder="<?php echo esc_attr($inputTitle); ?>"
 					                   id="<?php echo esc_attr($inputId); ?>"
 					                   class="widefat <?php echo esc_attr($inputClass); ?>"
 					                   name="<?php echo esc_attr($content_meta_key); ?>[<?php echo esc_attr($inputName); ?>]"

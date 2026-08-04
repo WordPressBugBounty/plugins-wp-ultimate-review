@@ -182,7 +182,7 @@ if($review_list == 'Yes' || isset($return_data_overview->overview->ratting->enab
     <div class="xs-review-box view-review-list" id="xs-review-box">
         <h3 class="total-reivew-headding"> 
 			<?php 
-				echo esc_html__($num_of_reviews, 'wp-ultimate-review'); 
+				echo esc_html($num_of_reviews);
 				printf(esc_html(_nx(' Review', ' Reviews', $num_of_reviews, 'no of reviews', 'wp-ultimate-review')));
 				
 				if(isset($global_setting['review_user_average']) && $global_setting['review_user_average'] == 'Yes'):
@@ -391,7 +391,7 @@ if($viewRattingPage == 'Yes'):
 			if(isset($_SESSION['xs_review_message']) AND strlen(sanitize_text_field(wp_unslash($_SESSION['xs_review_message']))) > 4 && isset($_POST['xs_review_form_public_data'])){ //phpcs:ignore  (WordPress.Security.NonceVerification.Missing
 			?>
             <div class="review_message_show">
-                <p><?php echo esc_html__(sanitize_text_field(wp_unslash($_SESSION['xs_review_message'])), 'wp-ultimate-review');
+                <p><?php echo esc_html(sanitize_text_field(wp_unslash($_SESSION['xs_review_message'])));
 					unset($_SESSION['xs_review_message']); ?></p>
             </div>
             <div class="wur-review-fields">

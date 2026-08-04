@@ -163,6 +163,16 @@ Class Init {
 	 */
 	public function __construct() {
 		$this->review_autoloder();
+
+		// Translate meta box field labels here since class property defaults
+		// cannot call translation functions directly.
+		$this->controls['xs_reviwer_ratting']['title_name'] = esc_html__('Rating', 'wp-ultimate-review');
+		$this->controls['xs_reviw_title']['title_name']     = esc_html__('Review Title', 'wp-ultimate-review');
+		$this->controls['xs_reviwer_name']['title_name']    = esc_html__('Reviewer Name', 'wp-ultimate-review');
+		$this->controls['xs_reviwer_email']['title_name']   = esc_html__('Reviewer Email', 'wp-ultimate-review');
+		$this->controls['xs_reviwer_website']['title_name'] = esc_html__('Website', 'wp-ultimate-review');
+		$this->controls['xs_reviw_summery']['title_name']   = esc_html__('Review Summary', 'wp-ultimate-review');
+
 		add_action('init', [$this, 'wur_add_custom_post']);
 		App\Content::instance()->init($this->controls, $this->post_type);
 

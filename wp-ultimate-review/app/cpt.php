@@ -38,6 +38,9 @@ Class Cpt {
 		// metabox show custom post type
 		$this->show_metabox_type = ['post', 'page', $post_type];
 
+		// Translate here since class property defaults cannot call translation functions directly.
+		$this->meta_box_headding = esc_html__('Reviwer Details ', 'wp-ultimate-review');
+
 		// Declear public controls 
 		$this->controls = $controls;
 
@@ -203,7 +206,7 @@ Class Cpt {
 			foreach($page_enable AS $postTypeDynamic):
 				add_meta_box(
 					'xs_reviewer_data',
-					esc_html__($this->meta_box_headding, 'wp-ultimate-review'),
+					esc_html($this->meta_box_headding),
 					[$this, 'wur_meta_box_html_view'],
 					$postTypeDynamic,
 					'normal',
