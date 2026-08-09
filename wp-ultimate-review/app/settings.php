@@ -258,7 +258,9 @@ class Settings {
 		wp_register_script('wur_settings_script', WUR_REVIEW_PLUGIN_URL . 'assets/admin/script/admin-settings.js', array(
 			'jquery',
 			'wp-color-picker',
-		));
+			'wp-i18n',
+		), WUR_REVIEW_VERSION);
+		wp_set_script_translations('wur_settings_script', 'wp-ultimate-review', WUR_REVIEW_PLUGIN_PATH . 'languages');
 		wp_enqueue_script('wur_settings_script');
 
 		wp_enqueue_script('wur_review_content_script', WUR_REVIEW_PLUGIN_URL . 'assets/public/script/content-page.js', ['jquery'], WUR_REVIEW_VERSION);

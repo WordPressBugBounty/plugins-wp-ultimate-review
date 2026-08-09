@@ -1,4 +1,6 @@
 
+const { __ } = wp.i18n;
+
 // show hide js global function
 function xs_review_show_hide(getID){
 	var idData = document.getElementById('xs_review_tr__'+getID);
@@ -169,10 +171,10 @@ jQuery(function ($) {
 		cuteAlert({
 			img: 'cute-alert-img/info.svg',
 			type: 'question',
-			title: 'Oops...',
-			message: '<p>You need to upgrade to the <strong><a href="https://wpmet.com/plugin/wp-ultimate-review/pricing/" target="_blank" style="color: red;">Premium</a> </strong> Version.</p>',
-			confirmText: "Buy Premium",
-			cancelText: "Close",
+			title: __('Oops...', 'wp-ultimate-review'),
+			message: __('<p>You need to upgrade to the <strong><a href="https://wpmet.com/plugin/wp-ultimate-review/pricing/" target="_blank" style="color: red;">Premium</a> </strong> Version.</p>', 'wp-ultimate-review'),
+			confirmText: __('Buy Premium', 'wp-ultimate-review'),
+			cancelText: __('Close', 'wp-ultimate-review'),
 		}).then((e)=>{
 			if(e == "confirm"){
 				open ("https://wpmet.com/plugin/wp-ultimate-review/pricing/", "_blank");
@@ -183,9 +185,9 @@ jQuery(function ($) {
 		cuteAlert({
 			img: 'cute-alert-img/info.svg',
 			type: "warning",
-			title: "WooCommerce Missing!",
-			message: "Need to activate the WooCommerce plugin for products review.",
-			buttonText: "Okay"
+			title: __('WooCommerce Missing!', 'wp-ultimate-review'),
+			message: __('Need to activate the WooCommerce plugin for products review.', 'wp-ultimate-review'),
+			buttonText: __('Okay', 'wp-ultimate-review')
 		  })
 		  $('.wur-non-clickable').prop("checked", false)
 	})
@@ -199,9 +201,9 @@ jQuery(function ($) {
 			cuteAlert({
 				img: 'cute-alert-img/info.svg',
 				type: "warning",
-				title: "Disclaimer!",
-				message: "IP addresses can be changed or masked by various means, such as VPN services, proxies, or Tor networks. This means that while we strive to prevent multiple reviews from the same IP address, it is not a foolproof method to ensure one review per user.",
-				buttonText: "Okay",
+				title: __('Disclaimer!', 'wp-ultimate-review'),
+				message: __('IP addresses can be changed or masked by various means, such as VPN services, proxies, or Tor networks. This means that while we strive to prevent multiple reviews from the same IP address, it is not a foolproof method to ensure one review per user.', 'wp-ultimate-review'),
+				buttonText: __('Okay', 'wp-ultimate-review'),
 				additionalClass: "ip-based-limit-disclaimer",
 			  })
 		} else {
@@ -220,9 +222,9 @@ jQuery(function ($) {
 			cuteAlert({
 				img: 'cute-alert-img/info.svg',
 				type: "warning",
-				title: "Security Warning!",
-				message: "Proxy headers (X-Forwarded-For, CF-Connecting-IP) can be easily spoofed by attackers to bypass IP-based rate limiting. Only enable this option if you are behind a trusted proxy infrastructure (e.g., CloudFlare) with proper configuration. The secure default is REMOTE_ADDR only.",
-				buttonText: "I Understand",
+				title: __('Security Warning!', 'wp-ultimate-review'),
+				message: __('Proxy headers (X-Forwarded-For, CF-Connecting-IP) can be easily spoofed by attackers to bypass IP-based rate limiting. Only enable this option if you are behind a trusted proxy infrastructure (e.g., CloudFlare) with proper configuration. The secure default is REMOTE_ADDR only.', 'wp-ultimate-review'),
+				buttonText: __('I Understand', 'wp-ultimate-review'),
 				additionalClass: "proxy-headers-security-warning",
 			  })
 		} else {
