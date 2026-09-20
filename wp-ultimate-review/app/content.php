@@ -338,7 +338,13 @@ class Content {
 					
 					// create array for save post data in post table
 					$postarr                 = [];
-					$postarr['post_content'] = isset($metaReviewData['xs_reviw_summery']) ? sanitize_textarea_field($metaReviewData['xs_reviw_summery']) : '';
+					// Security: strip shortcodes from attacker-controlled review content before
+					// storing it as post_content. The xs_review CPT is publicly_queryable, so
+					// WordPress core's the_content filter runs do_shortcode() on this value for
+					// anyone viewing the review — without stripping, a submitter (including an
+					// anonymous/unauthenticated visitor when the public review form is enabled)
+					// could execute arbitrary shortcodes. See CVE advisory for WP Ultimate Review <= 2.4.2.
+					$postarr['post_content'] = isset($metaReviewData['xs_reviw_summery']) ? strip_shortcodes( sanitize_textarea_field($metaReviewData['xs_reviw_summery']) ) : '';
 					$postarr['post_title']   = isset($metaReviewData['xs_reviw_title']) ? sanitize_text_field($metaReviewData['xs_reviw_title']) : '';
 
 					if(!isset($return_data_global_setting['require_approval'])) :

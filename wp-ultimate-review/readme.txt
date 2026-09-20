@@ -3,7 +3,7 @@ Contributors: Roxnor, Ataurr
 Tags: rating plugin, WordPress review plugin, customer review, user review, service review
 Requires at least: 6.0
 Tested up to: 7.0
-Stable tag: 2.4.2
+Stable tag: 2.4.3
 Requires PHP: 7.4
 Languages: English, Japanese
 License: GPLv3
@@ -129,7 +129,10 @@ You can manage your reviews from the all reviews section of the plugin. There ar
 
 ## Changelog
 
-Version 2.4.2 //2026-08-09
+Version 2.4.3 //2026-09-20
+- Improved: Security by enhancing shortcode execution content sanitization.
+
+Version  //2026-08-09
  -Fixed: Hard-coded and untranslatable strings.
 
 Version 2.4.1 //2026-08-04

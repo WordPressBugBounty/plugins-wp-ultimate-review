@@ -164,17 +164,14 @@ Class Init {
 	public function __construct() {
 		$this->review_autoloder();
 
-		// Translate meta box field labels here since class property defaults
-		// cannot call translation functions directly.
-		$this->controls['xs_reviwer_ratting']['title_name'] = esc_html__('Rating', 'wp-ultimate-review');
-		$this->controls['xs_reviw_title']['title_name']     = esc_html__('Review Title', 'wp-ultimate-review');
-		$this->controls['xs_reviwer_name']['title_name']    = esc_html__('Reviewer Name', 'wp-ultimate-review');
-		$this->controls['xs_reviwer_email']['title_name']   = esc_html__('Reviewer Email', 'wp-ultimate-review');
-		$this->controls['xs_reviwer_website']['title_name'] = esc_html__('Website', 'wp-ultimate-review');
-		$this->controls['xs_reviw_summery']['title_name']   = esc_html__('Review Summary', 'wp-ultimate-review');
-
+		// Security/compat: this constructor runs on the 'plugins_loaded' hook,
+		// which fires before 'after_setup_theme'/'init'. Calling translation
+		// functions (esc_html__, etc.) here triggers WordPress's
+		// "Translation loading ... triggered too early" _doing_it_wrong notice
+		// (added in WP 6.7). Defer the label translation and the dependent
+		// Content::init() call to the 'init' action, same as wur_add_custom_post.
+		add_action('init', [$this, 'wur_translate_controls_and_init_content'], 5);
 		add_action('init', [$this, 'wur_add_custom_post']);
-		App\Content::instance()->init($this->controls, $this->post_type);
 
 		if(Application::pro_version_exist()){
 			$this->add_updater();
@@ -197,6 +194,28 @@ Class Init {
 		if ( class_exists('\WurReview\Utilities\Template_Library\Init' ) && ! did_action( 'gutenkit/init' ) ) {
 			new \WurReview\Utilities\Template_Library\Init();
 		}
+	}
+
+
+	/**
+	 * Translate meta box field labels and bootstrap Content hooks.
+	 *
+	 * Runs on the 'init' action (see __construct) so translation functions
+	 * are never called before 'after_setup_theme', avoiding the
+	 * "Translation loading ... triggered too early" notice.
+	 *
+	 * @since 2.4.3
+	 * @access public
+	 */
+	public function wur_translate_controls_and_init_content() {
+		$this->controls['xs_reviwer_ratting']['title_name'] = esc_html__('Rating', 'wp-ultimate-review');
+		$this->controls['xs_reviw_title']['title_name']     = esc_html__('Review Title', 'wp-ultimate-review');
+		$this->controls['xs_reviwer_name']['title_name']    = esc_html__('Reviewer Name', 'wp-ultimate-review');
+		$this->controls['xs_reviwer_email']['title_name']   = esc_html__('Reviewer Email', 'wp-ultimate-review');
+		$this->controls['xs_reviwer_website']['title_name'] = esc_html__('Website', 'wp-ultimate-review');
+		$this->controls['xs_reviw_summery']['title_name']   = esc_html__('Review Summary', 'wp-ultimate-review');
+
+		App\Content::instance()->init($this->controls, $this->post_type);
 	}
 
 

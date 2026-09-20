@@ -95,7 +95,7 @@ Class Cpt {
 
 		if ($post->post_type === 'xs_review') {
 			?>
-			<label><strong><?php esc_html__( 'Edit Rating Score:', 'wp-ultimate-review' ); ?> </strong></label>
+			<label><strong><?php esc_html_e( 'Edit Rating Score:', 'wp-ultimate-review' ); ?> </strong></label>
 			<div class="xs-review-box public-xs-review-box" id="xs-review-box">
 				<div class="wur-review-fields"> <?php
 
