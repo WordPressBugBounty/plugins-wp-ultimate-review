@@ -149,7 +149,13 @@ class Settings {
 
 				$option_value_global_setting = isset($_POST[$global_setting_optionKey]) ? $_POST[$global_setting_optionKey] : array(); //phpcs:ignore sanitization done in array with self custom function
 
+				// GDPR consent text may contain links, so it keeps a small set of safe HTML tags
+				$gdpr_consent_text = (isset($option_value_global_setting['gdpr_consent_text']) && is_string($option_value_global_setting['gdpr_consent_text'])) ? wp_unslash($option_value_global_setting['gdpr_consent_text']) : '';
+
 				$option_value_global_setting = self::sanitize($option_value_global_setting);
+
+				$option_value_global_setting['gdpr_consent_text'] = self::sanitize_gdpr_consent_text($gdpr_consent_text);
+
 				if(update_option($global_setting_optionKey, $option_value_global_setting, 'Yes')) {
 					$message_status = 'show';
 					$message_text   = esc_html__('Global Settings', 'wp-ultimate-review');
@@ -264,6 +270,38 @@ class Settings {
 		wp_enqueue_script('wur_settings_script');
 
 		wp_enqueue_script('wur_review_content_script', WUR_REVIEW_PLUGIN_URL . 'assets/public/script/content-page.js', ['jquery'], WUR_REVIEW_VERSION);
+	}
+
+
+	/**
+	 * HTML tags allowed in the GDPR consent text
+	 *
+	 * @since 2.4.4
+	 * @return array
+	 */
+	public static function gdpr_consent_allowed_html() {
+		return [
+			'a'      => ['href' => [], 'target' => [], 'rel' => [], 'title' => []],
+			'strong' => [],
+			'b'      => [],
+			'em'     => [],
+			'i'      => [],
+		];
+	}
+
+
+	/**
+	 * Keep only the allowed tags (links, bold, italic) in the GDPR consent text
+	 *
+	 * @since 2.4.4
+	 * @param string $text
+	 * @return string
+	 */
+	public static function sanitize_gdpr_consent_text($text) {
+		$text = wp_kses(trim((string)$text), self::gdpr_consent_allowed_html());
+
+		// keep it on a single line like the rest of the form labels
+		return preg_replace('/\s+/', ' ', $text);
 	}
 
 

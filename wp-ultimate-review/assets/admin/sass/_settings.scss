@@ -1504,3 +1504,22 @@ body.xs_review_page_xs_settings {
 .wur-visiblity-disable{
 	opacity: 0.5;
 }
+// GDPR consent text editor
+.wur-login-main-wrapper .wur-gdpr-consent-editor {
+	width: 600px;
+	max-width: 100%;
+
+	.wp-editor-area {
+		min-height: 90px;
+	}
+}
+
+// criteria based review: the overall rating is the average, so it is not clickable
+.wur-review-fields ul#xs_review_stars.xs-review-rating-readonly {
+	pointer-events: none;
+	opacity: 0.95;
+
+	li.star-li {
+		cursor: default;
+	}
+}

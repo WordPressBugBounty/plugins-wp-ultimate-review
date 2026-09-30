@@ -55,8 +55,8 @@ if(isset($global_setting['review_author_average']) && $global_setting['review_au
 					}
 
 					$item_name  = $ratValue->name;
-					$item_rate  = $ratValue->ratting;
-					$rate_range = $ratValue->rat_range;
+					$item_rate  = floatval( $ratValue->ratting );
+					$rate_range = floatval( $ratValue->rat_range );
 
 					if(!empty($item_name) && $item_rate > 0):
 
@@ -69,9 +69,9 @@ if(isset($global_setting['review_author_average']) && $global_setting['review_au
                             <div class="data-rat-label-range">
 								<?php
 								if($itemRattingStyle == 'percentage'){
-									echo round(($item_rate * 100) / $rate_range) ?> / <?php echo 100 .' (%)'; //phpcs:ignore
+									echo esc_html( round(($item_rate * 100) / max( 1, $rate_range )) ) ?> / <?php echo 100 .' (%)'; //phpcs:ignore
 								} else {
-									echo $item_rate; ?> / <?php echo $rate_range;//phpcs:ignore
+									echo esc_html( $item_rate ); ?> / <?php echo esc_html( $rate_range );//phpcs:ignore
 								} ?>
                             </div>
                             <div class="data-rat">
@@ -88,17 +88,9 @@ if(isset($global_setting['review_author_average']) && $global_setting['review_au
 
                                 elseif($itemRattingStyle == 'point'):
 
-									if($ratCount != 0) {
-										echo '<div class="border-div no-border-div"> </div>';
-									}
-
 									echo wp_kses(self::wur_ratting_view_point_per($item_rate, $rate_range), \WurReview\App\Settings::kses(null, true));
 
                                 elseif($itemRattingStyle == 'percentage'):
-
-									if($ratCount != 0) {
-										echo '<div class="border-div no-border-div"> </div>';
-									}
 
 									echo wp_kses(self::wur_ratting_view_percentange_per($item_rate, $rate_range), \WurReview\App\Settings::kses(null, true));
 
@@ -184,7 +176,7 @@ if(isset($global_setting['review_author_average']) && $global_setting['review_au
 
 		<?php
 
-		if(isset($post_review_meta->overview->summary->enable)): ?>
+		if(isset($post_review_meta->overview->summary->enable) && is_scalar($itemRattingSummary) && trim((string)$itemRattingSummary) !== ''): ?>
 		    <div class="overview-summary">
 			    <h3><?php echo esc_html__('Summary', 'wp-ultimate-review'); ?></h3>
 			    <p><?php echo esc_html($itemRattingSummary); ?></p>

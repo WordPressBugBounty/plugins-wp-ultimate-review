@@ -2,8 +2,8 @@
 Contributors: Roxnor, Ataurr
 Tags: rating plugin, WordPress review plugin, customer review, user review, service review
 Requires at least: 6.0
-Tested up to: 7.0
-Stable tag: 2.4.3
+Tested up to: 7.1
+Stable tag: 2.4.4
 Requires PHP: 7.4
 Languages: English, Japanese
 License: GPLv3
@@ -128,6 +128,12 @@ You can manage your reviews from the all reviews section of the plugin. There ar
 [Browse the code](https://plugins.trac.wordpress.org/browser/wp-ultimate-review/), check out the  [SVN repository](https://plugins.svn.wordpress.org/wp-ultimate-review/), or subscribe to the  [development log](https://plugins.trac.wordpress.org/log/wp-ultimate-review/)  by  [RSS](https://plugins.trac.wordpress.org/log/wp-ultimate-review/?limit=100&mode=stop_on_copy&format=rss).
 
 ## Changelog
+
+Version 2.4.4 //2026-09-29
+- Added: GDPR consent support.
+- Fixed: Criteria rating and WooCommerce rating display issues.
+- Fixed: An unauthenticated arbitrary shortcode execution vulnerability in review submissions.
+- Fixed: Stored XSS vulnerabilities and multiple denial-of-service issues in review submissions and display settings.
 
 Version 2.4.3 //2026-09-20
 - Improved: Security by enhancing shortcode execution content sanitization.

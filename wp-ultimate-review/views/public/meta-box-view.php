@@ -3,6 +3,11 @@ use WurReview\Helper\Helper;
 
 defined('ABSPATH') || exit;
 
+// Criteria based review (pro) context for the form and the review list of this shortcode
+$wur_criteria_settings = new \WurReview\App\Wur_Settings();
+$wur_criteria_settings->load();
+$wur_criteria_context = $wur_criteria_settings->get_criteria_review_context($this->getPostType);
+
 if((isset($return_data_overview->overview->enable) ? $return_data_overview->overview->enable : 'No') == 'Yes') {
 	$itemRattingHeatting = isset($return_data_overview->overview->heading) ? $return_data_overview->overview->heading : 'Overview';
 	?>
@@ -294,8 +299,11 @@ if($review_list == 'Yes' || isset($return_data_overview->overview->ratting->enab
 								echo wp_kses(self::wur_ratting_view_star_point($getMetaData->wur_reviwer_ratting, $reviwerStyleLimit), \WurReview\App\Settings::kses(null, true));
 							}
 						endif;
+
+						// Criteria based review (pro): the per criterion ratings of this review
+						do_action('wur_criteria_review_list', $getMetaData, $wur_criteria_context);
 					endif;
-					// ratting date 
+					// ratting date
 					$enable_date = isset($return_data_display_setting['form']['post_date_data']['display']['enable']) ? 'Yes' : 'No';
 					if(!is_array($return_data_display_setting)) {
 						$enable_date = 'Yes';
@@ -479,7 +487,16 @@ if($viewRattingPage == 'Yes'):
 								?>
                                 <div class="xs-review xs-<?php echo esc_attr($inputType); ?>"
                                      style="<?php echo esc_attr($displayFiled); ?>">
-									<?php if(in_array($review_score_style_input, array(
+									<?php
+									/**
+									 * Criteria based review (pro): one rating input per criterion.
+									 * Falls back to the single rating input below when the feature is off.
+									 */
+									if(!empty($wur_criteria_context['criteria']) && has_action('wur_criteria_rating_fields')):
+
+										do_action('wur_criteria_rating_fields', $wur_criteria_context);
+
+									elseif(in_array($review_score_style_input, array(
 										'star',
 										'square',
 										'movie',
@@ -506,7 +523,7 @@ if($viewRattingPage == 'Yes'):
                                                    value="1" <?php echo esc_attr($requireSet); ?> />
                                         </div>
 									<?php endif;
-									if($review_score_style_input == 'slider'):?>
+									if((empty($wur_criteria_context['criteria']) || !has_action('wur_criteria_rating_fields')) && $review_score_style_input == 'slider'):?>
                                         <div class="xs-review-rating-slider text-center">
                                             <div class="xs-slidecontainer">
                                                 <input type="range" min="1"
@@ -595,6 +612,8 @@ if($viewRattingPage == 'Yes'):
 						}
 					endforeach;
 				}
+					require WUR_REVIEW_PLUGIN_PATH . 'views/public/gdpr-consent.php';
+
 					//this hooks called from pro version
 					do_action('wur_recaptcha_show');
 				?>

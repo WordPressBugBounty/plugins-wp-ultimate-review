@@ -1125,3 +1125,31 @@
     color: red;
     display: none;
 }
+/*css for GDPR consent*/
+.xs-review-gdpr-consent label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    line-height: 1.5;
+    cursor: pointer;
+}
+.xs-review-gdpr-consent input[type="checkbox"] {
+    margin: 0;
+    flex-shrink: 0;
+}
+
+/*Overview point / percentage: same spacing for every item*/
+.xs-review-overview-list.custom-rat .xs-overview-point,
+.xs-review-overview-list.custom-rat .xs-overview-percentage {
+    margin-bottom: 18px;
+}
+.xs-review-overview-list.custom-rat .xs-overview-point .data-rat,
+.xs-review-overview-list.custom-rat .xs-overview-percentage .data-rat {
+    margin-top: 6px;
+}
+
+.xs-review-gdpr-consent .xs-review-gdpr-consent-text {
+    position: relative;
+    top: -2px;
+}

@@ -124,6 +124,12 @@ defined( 'ABSPATH' ) || exit;
 	$review_score_limit = isset($getMetaData->review_score_limit) ? $getMetaData->review_score_limit : '5';
 	$review_score_input = isset($getMetaData->review_score_input) ? $getMetaData->review_score_input : 'start';
 
+	/**
+	 * Criteria based review (pro): show the per criterion ratings of this review so a moderator
+	 * can see what was submitted. Prints nothing for reviews without criteria data.
+	 */
+	do_action('wur_criteria_admin_review', $getMetaData);
+
 	?>
     <input type="hidden" value="<?php echo esc_attr($postIdHidden);?>" name="<?php echo esc_attr($content_meta_key);?>[xs_post_id]" />
     <input type="hidden" value="<?php echo esc_attr($postTypeHidden);?>" name="<?php echo esc_attr($content_meta_key);?>[xs_post_type]" />

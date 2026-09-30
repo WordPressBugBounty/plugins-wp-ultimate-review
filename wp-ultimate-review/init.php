@@ -310,7 +310,8 @@ Class Init {
 
 		new App\Cpt($this->controls, $this->post_type, $this->review_type, $this->review_style, $this->page_enable);
 		new App\Settings($this->controls, $this->post_type, $this->review_type, $this->review_style, $this->page_enable);
- 
+		new App\Woocommerce();
+
 		(new License_Menu())->add_menu();
 	}
 

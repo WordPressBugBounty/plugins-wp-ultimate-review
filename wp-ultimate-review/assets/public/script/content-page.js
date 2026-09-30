@@ -89,9 +89,9 @@ jQuery(document).ready(function () {
     var sliderReview = jQuery("#xs_review_range");
     var outputReview = jQuery("#review_data_show");
     if(sliderReview.length > 0) {
-        outputReview.html(sliderReview.val());
+        outputReview.text(sliderReview.val());
         sliderReview.on('change', function () {
-            outputReview.html(jQuery(this).val());
+            outputReview.text(jQuery(this).val());
         });
     }
 

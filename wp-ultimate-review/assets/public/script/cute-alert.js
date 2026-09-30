@@ -142,7 +142,7 @@ const cuteToast = ({ type, title, message, timer = 5000,  vibrate = [], playSoun
       templateContainer = document.querySelector('.toast-container');
     }
 
-    const toastId = id();
+    const toastId = cuteAlertUniqueId();
 
     const templateContent = `
     <div class="toast-content ${type}-bg" id="${toastId}-toast-content">
@@ -195,6 +195,6 @@ const cuteToast = ({ type, title, message, timer = 5000,  vibrate = [], playSoun
   });
 };
 
-const id = () => {
+const cuteAlertUniqueId = () => {
   return '_' + Math.random().toString(36).substr(2, 9);
 };

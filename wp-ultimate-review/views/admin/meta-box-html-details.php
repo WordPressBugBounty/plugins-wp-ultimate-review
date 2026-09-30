@@ -141,9 +141,8 @@ $overview_setting_optionKey = 'xs_review_overview_settings';
 
 			$review_score_limit = isset($global_settings['review_score_limit']) ? $global_settings['review_score_limit'] : 5;
 
-			if(in_array($selectReviewScoreStyle, ['percentage', 'pie'])):
-				$review_score_style_input = 'slider';
-			endif;
+			// The rating input always follows the global "Review Score Input Style" (same as the public review form),
+			// so every post type shows the same input regardless of the selected graph style.
 
 			?>
 
@@ -154,20 +153,50 @@ $overview_setting_optionKey = 'xs_review_overview_settings';
                 <span class="dashicons dashicons-plus"></span><?php echo esc_html__('Add', 'wp-ultimate-review'); ?>
             </button>
 			<?php
-			$post_criteria = $criteria_settings['post']['criteria_names'] ?? [ '', '', '' ];
+			// products use the product criteria, every other post type uses the post/page criteria
+			$post_criteria = $wur->get_criteria_names_for_post_type($post->post_type);
 
-			$selectOverviewReapter = isset($saved_meta->overview->item) ? count($saved_meta->overview->item) : 3;
-			$dataName              = '';
-			$dataRatting           = '';
-			for($rep = 0; $rep < $selectOverviewReapter; $rep++):
-				$inceRep = $rep + 1;
+			$default_ratting = min(3, (int)$review_score_limit);
 
-				$dynamiCkey = $rep;
-				$dataName   = isset($saved_meta->overview->item[$dynamiCkey]->name) ? $saved_meta->overview->item[$dynamiCkey]->name : ( $post_criteria[$rep] ?? '' );
+			// Saved items (without the empty ones) followed by every criteria that is not saved yet,
+			// so criteria added in the settings also show up on posts that were already reviewed.
+			$overview_items = [];
+			$saved_names    = [];
 
-				$dataRatting = isset($saved_meta->overview->item[$dynamiCkey]->ratting) ? $saved_meta->overview->item[$dynamiCkey]->ratting : '3';
+			if(!empty($saved_meta->overview->item)) {
+				foreach($saved_meta->overview->item as $saved_item) {
+					$saved_name = (isset($saved_item->name) && is_scalar($saved_item->name)) ? trim((string)$saved_item->name) : '';
 
-				$dataRattingRange = isset($saved_meta->overview->item[$dynamiCkey]->rat_range) ? $saved_meta->overview->item[$dynamiCkey]->rat_range : $review_score_limit;
+					if($saved_name === '' || in_array(strtolower($saved_name), $saved_names, true)) {
+						continue;
+					}
+
+					$saved_names[]    = strtolower($saved_name);
+					$overview_items[] = [
+						'name'      => $saved_name,
+						'ratting'   => isset($saved_item->ratting) ? $saved_item->ratting : $default_ratting,
+						'rat_range' => isset($saved_item->rat_range) ? $saved_item->rat_range : $review_score_limit,
+					];
+				}
+			}
+
+			foreach($post_criteria as $criteria_name) {
+				if(!in_array(strtolower($criteria_name), $saved_names, true)) {
+					$overview_items[] = ['name' => $criteria_name, 'ratting' => $default_ratting, 'rat_range' => $review_score_limit];
+				}
+			}
+
+			// no saved items and no criteria: show three empty rows as before
+			if(empty($overview_items)) {
+				$overview_items = array_fill(0, 3, ['name' => '', 'ratting' => $default_ratting, 'rat_range' => $review_score_limit]);
+			}
+
+			$selectOverviewReapter = count($overview_items);
+
+			foreach($overview_items as $rep => $overview_item):
+				$dataName         = $overview_item['name'];
+				$dataRatting      = $overview_item['ratting'];
+				$dataRattingRange = $overview_item['rat_range'];
 				?>
 
                 <div class="reapter-div-xs">
@@ -200,12 +229,11 @@ $overview_setting_optionKey = 'xs_review_overview_settings';
 									'pill',
 								))): ?>
                                     <div class="xs-review-rating-stars text-center">
-                                        <ul id="xs_review_stars" class="xs_review_stars">
+                                        <ul class="xs_review_stars">
 											<?php for($ratting = 1; $ratting <= $dataRattingRange; $ratting++): ?>
                                                 <li class="star-li <?php echo esc_attr($review_score_style_input); ?>  <?php if($ratting <= $dataRatting) {
 													echo 'selected';
-												} ?>" data-value="<?php echo esc_attr($ratting); ?>"
-                                                    onclick="click_xs_review_data()">
+												} ?>" data-value="<?php echo esc_attr($ratting); ?>">
 													<?php if($review_score_style_input == 'star') { ?>
                                                         <i class="xs-star dashicons-before dashicons-star-filled"></i>
 													<?php } else {
@@ -216,6 +244,8 @@ $overview_setting_optionKey = 'xs_review_overview_settings';
                                         </ul>
                                         <input type="number"
                                                class="right-review-ratting wur-global-input wur-number-input"
+                                               min="1" max="<?php echo esc_attr($dataRattingRange); ?>" step="1"
+                                               data-default="<?php echo esc_attr($default_ratting); ?>"
                                                value="<?php echo esc_attr($dataRatting); ?>"
                                                name="xs_review_overview_settings[overview][item][<?php echo esc_attr($rep); ?>][ratting]"
                                                data-pattern-name="xs_review_overview_settings[overview][item][++][ratting]"
@@ -231,6 +261,7 @@ $overview_setting_optionKey = 'xs_review_overview_settings';
                                                    value="<?php echo esc_attr($dataRatting); ?>"
                                                    name="xs_review_overview_settings[overview][item][<?php echo esc_attr($rep); ?>][ratting]"
                                                    class="xs-slider-range" id="xs_review_range"
+                                                   data-default="<?php echo esc_attr($default_ratting); ?>"
                                                    data-pattern-name="xs_review_overview_settings[overview][item][++][ratting]"
                                                    id="xs_review_<?php echo esc_attr($rep); ?>_ratting"
                                                    data-pattern-id="xs_review_++_ratting"
@@ -250,7 +281,7 @@ $overview_setting_optionKey = 'xs_review_overview_settings';
                             class="xs-review-btnRemove xs-review-remove-button xs-review-btn xs-btn btn-danger small">
                         <span class="dashicons dashicons-no-alt"></span></button>
                 </div>
-			<?php endfor; ?>
+			<?php endforeach; ?>
         </div>
 
     </div>
@@ -276,7 +307,10 @@ $overview_setting_optionKey = 'xs_review_overview_settings';
                 animation: 'fade',
                 animationSpeed: 400,
                 animationEasing: 'swing',
-                clearValues: true
+                clearValues: true,
+                afterAdd: function ($row) {
+                    xs_review_after_add_item($row);
+                }
             }, []
         );
     });

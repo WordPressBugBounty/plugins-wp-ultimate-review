@@ -369,6 +369,95 @@ $active_tab = sanitize_text_field(wp_unslash(isset($_GET["tab"]) ? $_GET["tab"] 
                         </div>
                     </div><!-- Single Item -->
 
+                    <!-- Criteria based review (pro) -->
+                    <div class="wur-single-item wur-single-item-middle">
+                        <div class="wur-left-label">
+                            <label for="review_criteria_review"
+                                   class="wur-sec-title"><?php echo esc_html__('Criteria based review', 'wp-ultimate-review'); ?></label>
+                        </div>
+                        <div class="wur-right-content">
+							<?php
+							$criteria_review_enabled = (isset($return_data_global_setting['criteria_review']) && $return_data_global_setting['criteria_review'] == 'Yes');
+
+							if($is_pro_exist): ?>
+                                <input class="review_switch_button" type="checkbox" id="review_criteria_review"
+                                       name="<?php echo esc_attr($global_setting_optionKey); ?>[criteria_review]"
+                                       value="Yes" <?php echo esc_attr($criteria_review_enabled ? 'checked' : ''); ?> >
+                                <label for="review_criteria_review" class="review_switch_button_label"></label>
+							<?php else: ?>
+                                <strong><a href="https://wpmet.com/plugin/wp-ultimate-review/pricing/" target="_blank" style="color: red;"><?php echo esc_html__('Buy Premium', 'wp-ultimate-review'); ?></a> </strong>
+							<?php endif; ?>
+
+                            <p class="description"><?php echo esc_html__('Visitors rate every criterion from the Criteria tab instead of giving a single rating.', 'wp-ultimate-review'); ?></p>
+
+							<?php
+							// the feature needs criteria names, otherwise the form falls back to the single rating input
+							if($is_pro_exist && $criteria_review_enabled):
+								$wur_criteria_names = array_merge(
+									isset($global_setting_criteria_setting['product']['criteria_names']) ? (array)$global_setting_criteria_setting['product']['criteria_names'] : [],
+									isset($global_setting_criteria_setting['post']['criteria_names']) ? (array)$global_setting_criteria_setting['post']['criteria_names'] : []
+								);
+								$wur_criteria_names = array_filter(array_map('trim', array_filter($wur_criteria_names, 'is_scalar')), 'strlen');
+
+								if(empty($wur_criteria_names)): ?>
+                                    <p class="description wur-criteria-review-notice" style="color:#d63638;">
+										<?php
+										printf(
+											/* translators: %s: link to the Criteria settings tab */
+											esc_html__('No criteria found. Add criteria in the %s tab, otherwise the review form keeps showing a single rating.', 'wp-ultimate-review'),
+											'<a href="' . esc_url(admin_url('edit.php?post_type=' . $this->post_type . '&page=xs_settings&tab=wur_criteria')) . '">' . esc_html__('Criteria', 'wp-ultimate-review') . '</a>'
+										);
+										?>
+                                    </p>
+								<?php endif;
+							endif; ?>
+                        </div>
+                    </div><!-- Single Item -->
+
+                    <div class="wur-single-item wur-single-item-middle">
+                        <div class="wur-left-label">
+                            <label for="review_gdpr_consent"
+                                   class="wur-sec-title"><?php echo esc_html__('GDPR consent checkbox', 'wp-ultimate-review'); ?></label>
+                        </div>
+                        <div class="wur-right-content">
+                            <input class="review_switch_button wur-gdpr-consent-switch" type="checkbox" id="review_gdpr_consent"
+                                   name="<?php echo esc_attr($global_setting_optionKey); ?>[gdpr_consent]"
+                                   value="Yes" <?php echo (isset($return_data_global_setting['gdpr_consent']) && $return_data_global_setting['gdpr_consent'] == 'Yes') ? 'checked' : ''; ?> >
+                            <label for="review_gdpr_consent" class="review_switch_button_label"></label>
+                        </div>
+                    </div><!-- Single Item -->
+
+                    <div class="wur-single-item wur-single-item-middle wur-gdpr-consent-text-wrapper" style="<?php echo (isset($return_data_global_setting['gdpr_consent']) && $return_data_global_setting['gdpr_consent'] == 'Yes') ? '' : 'display:none;'; ?>">
+                        <div class="wur-left-label">
+                            <label for="review_gdpr_consent_text"
+                                   class="wur-sec-title"><?php echo esc_html__('GDPR consent text', 'wp-ultimate-review'); ?></label>
+                        </div>
+                        <div class="wur-right-content wur-gdpr-consent-editor">
+                            <?php
+                            // small editor so a part of the text can be selected and turned into a link
+                            wp_editor(
+                                isset($return_data_global_setting['gdpr_consent_text']) ? $return_data_global_setting['gdpr_consent_text'] : '',
+                                'review_gdpr_consent_text',
+                                [
+                                    'textarea_name' => $global_setting_optionKey . '[gdpr_consent_text]',
+                                    'textarea_rows' => 3,
+                                    'media_buttons' => false,
+                                    'wpautop'       => false,
+                                    'teeny'         => false,
+                                    'tinymce'       => [
+                                        'toolbar1'      => 'bold,italic,link,unlink',
+                                        'toolbar2'      => '',
+                                        'forced_root_block' => false,
+                                    ],
+                                    'quicktags'     => ['buttons' => 'strong,em,link'],
+                                ]
+                            );
+                            ?>
+                            <p class="description"><?php echo esc_html__('Select any text and click the link button to make it clickable. Leave empty to use the default text.', 'wp-ultimate-review'); ?></p>
+                            <p class="description"><?php echo esc_html__('Use [privacy_policy] to show a link to your Privacy Policy page.', 'wp-ultimate-review'); ?></p>
+                        </div>
+                    </div><!-- Single Item -->
+
                     <div class="wur-single-item">
                         <div class="wur-left-label">
                             <label class="wur-sec-title">&nbsp;</label>

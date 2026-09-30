@@ -94,26 +94,33 @@ Class Cpt {
 		global $post;
 
 		if ($post->post_type === 'xs_review') {
-			?>
-			<label><strong><?php esc_html_e( 'Edit Rating Score:', 'wp-ultimate-review' ); ?> </strong></label>
-			<div class="xs-review-box public-xs-review-box" id="xs-review-box">
-				<div class="wur-review-fields"> <?php
 
-					$metaReviewID = $post->ID;
-					$metaDataJson = get_post_meta($metaReviewID, 'xs_public_review_data', false);
-					if(is_array($metaDataJson) AND sizeof($metaDataJson) > 0) {
-						$getMetaData = \WurReview\Helper\Helper::_decode_json_unicode($metaDataJson[0]);
-					} else {
-						$getMetaData = [];
-					}
-	
-					$review_score_style_input = 'star';
-					$review_score_limit       = isset($getMetaData->review_score_limit) ? $getMetaData->review_score_limit : 5;
-					$current_rating           = isset($getMetaData->xs_reviwer_ratting) ? $getMetaData->xs_reviwer_ratting : 0;
-					?>
+			$metaReviewID = $post->ID;
+			$metaDataJson = get_post_meta($metaReviewID, 'xs_public_review_data', false);
+			if(is_array($metaDataJson) AND sizeof($metaDataJson) > 0) {
+				$getMetaData = \WurReview\Helper\Helper::_decode_json_unicode($metaDataJson[0]);
+			} else {
+				$getMetaData = [];
+			}
+
+			$review_score_style_input = 'star';
+			$review_score_limit       = isset($getMetaData->review_score_limit) ? $getMetaData->review_score_limit : 5;
+			$current_rating           = isset($getMetaData->xs_reviwer_ratting) ? $getMetaData->xs_reviwer_ratting : 0;
+
+			/**
+			 * Criteria based review (pro): the overall rating is the average of the criteria and is
+			 * recalculated whenever the review is saved, so it cannot be edited by hand here.
+			 */
+			$has_criteria_ratings = !empty($getMetaData->xs_criteria_ratings) && is_array($getMetaData->xs_criteria_ratings);
+			?>
+			<label><strong><?php echo $has_criteria_ratings
+					? esc_html__('Average Rating Score:', 'wp-ultimate-review')
+					: esc_html__('Edit Rating Score:', 'wp-ultimate-review'); ?> </strong></label>
+			<div class="xs-review-box public-xs-review-box" id="xs-review-box">
+				<div class="wur-review-fields"> <?php ?>
 					<div class="xs-review xs-select"style="display:block">
 						<div class="xs-review-rating-stars text-center">
-							<ul id="xs_review_stars">
+							<ul id="xs_review_stars" class="<?php echo esc_attr($has_criteria_ratings ? "xs-review-rating-readonly" : ""); ?>">
 								
 								<?php
 								for($ratting = 1; $ratting <= $review_score_limit; $ratting++): ?>
@@ -128,10 +135,18 @@ Class Cpt {
 									</li>
 								<?php endfor; ?>
 							</ul>
-							<div id="review_data_show"></div>
-							<input type="hidden" id="ratting_review_hidden" name="xs_review_rating_edit" value="<?php echo esc_attr(intval($current_rating)); ?>"/>
+							<div id="review_data_show"><?php echo $has_criteria_ratings ? esc_html($current_rating . ' / ' . $review_score_limit) : ''; ?></div>
+							<input type="hidden" id="ratting_review_hidden" name="xs_review_rating_edit" value="<?php echo esc_attr($has_criteria_ratings ? $current_rating : intval($current_rating)); ?>"/>
 						</div>
 					</div>
+
+					<?php
+					/**
+					 * Criteria based review (pro): what the reviewer rated per criterion, read only.
+					 * Prints nothing for reviews without criteria data.
+					 */
+					do_action('wur_criteria_admin_review', $getMetaData);
+					?>
 				</div>
 			</div>
 			<?php
@@ -317,8 +332,19 @@ Class Cpt {
 						$valueData = [];
 
 						if (!empty($metaOverviewData['overview']['item'])) {
+							$savedNames = [];
 							foreach ($metaOverviewData['overview']['item'] as $value) {
+								// skip items without a name and duplicated names
+								$itemName = (isset($value['name']) && is_scalar($value['name'])) ? trim((string)$value['name']) : '';
+								if ($itemName === '' || in_array(strtolower($itemName), $savedNames, true)) {
+									continue;
+								}
+								$savedNames[]  = strtolower($itemName);
+								$value['name'] = $itemName;
+
 								$value['rat_range'] = $review_score_limit;
+								// keep the criteria rating inside the allowed range
+								$value['ratting']   = (string)max(0, min((int)$review_score_limit, isset($value['ratting']) ? (int)$value['ratting'] : 0));
 								$valueData[] = $value;
 							}
 							$metaOverviewData['overview']['item'] = $valueData;
@@ -330,6 +356,17 @@ Class Cpt {
 
 						$metaReviewData   = Settings::sanitize($_POST[$frontend_form_key]);
 						$metaKey = 'xs_public_review_data';
+
+						/**
+						 * The review screen posts only the fields it shows, so data the visitor
+						 * submitted but the screen does not edit, like the criteria ratings, would
+						 * be lost. Carry it over from the stored review.
+						 */
+						$stored_review = Wur_Settings::get_xs_post_meta($post_id, $metaKey);
+
+						if(empty($metaReviewData['xs_criteria_ratings']) && !empty($stored_review->xs_criteria_ratings)) {
+							$metaReviewData['xs_criteria_ratings'] = json_decode(wp_json_encode($stored_review->xs_criteria_ratings), true);
+						}
 
 						update_post_meta($post_id, $metaKey, Settings::_encode_json($metaReviewData));
 
@@ -349,20 +386,61 @@ Class Cpt {
 		}
 		// phpcs:enable
 
-		if(isset($_POST['xs_review_rating_edit'])) {
+		// the review screen posts the WordPress post nonce, so a forged request cannot change a rating
+		$review_screen_nonce = isset($_POST['_wpnonce']) ? sanitize_text_field(wp_unslash($_POST['_wpnonce'])) : '';
+
+		if(isset($_POST['xs_review_rating_edit']) && wp_verify_nonce($review_screen_nonce, 'update-post_' . $post_id)) {
 
 			$metaDataJson = get_post_meta($post_id, 'xs_public_review_data', false);
-			
+
 			if(is_array($metaDataJson) AND sizeof($metaDataJson) > 0) {
 				$getMetaData = json_decode($metaDataJson[0], true);
 			} else {
 				$getMetaData = [];
 			}
-	
+
 			if(isset($getMetaData['xs_reviwer_ratting'])){
 				$getMetaData['xs_reviwer_ratting'] = sanitize_text_field($_POST['xs_review_rating_edit']);
 			}
-			
+
+			/**
+			 * Criteria based review (pro): the review screen can edit every criterion, and the
+			 * overall rating is then recalculated from them, so both always agree.
+			 */
+			if(isset($_POST['wur_criteria_ratings'])
+			   && is_array($_POST['wur_criteria_ratings'])
+			   && !empty($getMetaData['xs_criteria_ratings'])) {
+
+				$posted_criteria = Settings::sanitize($_POST['wur_criteria_ratings']); //phpcs:ignore sanitization done with self custom function
+				$score_limit     = (isset($getMetaData['review_score_limit']) && is_numeric($getMetaData['review_score_limit']) && $getMetaData['review_score_limit'] > 0) ? (int)$getMetaData['review_score_limit'] : 5;
+
+				$criteria_rows = [];
+				$criteria_sum  = 0;
+
+				foreach((array)$getMetaData['xs_criteria_ratings'] as $index => $criteria_row) {
+
+					$criteria_row = (array)$criteria_row;
+					$edited       = isset($posted_criteria[$index]) ? $posted_criteria[$index] : null;
+					$rating       = (is_scalar($edited) && is_numeric($edited)) ? (int)$edited : 0;
+
+					// a criterion set to 0 is removed from the review
+					if($rating < 1) {
+						continue;
+					}
+
+					$criteria_row['rating'] = (string)min($rating, $score_limit);
+
+					$criteria_rows[] = $criteria_row;
+					$criteria_sum    += (int)$criteria_row['rating'];
+				}
+
+				$getMetaData['xs_criteria_ratings'] = $criteria_rows;
+
+				if(!empty($criteria_rows)) {
+					$getMetaData['xs_reviwer_ratting'] = (string)round($criteria_sum / count($criteria_rows), 2);
+				}
+			}
+
 			update_post_meta($post_id, 'xs_public_review_data', Settings::_encode_json($getMetaData));
 		}
 	}

@@ -103,61 +103,21 @@ class Content {
 			return $content;
 		}
 
-		// output for display settings. Get from options
-		$this->getPostType = $post->post_type;
-		$this->getPostId   = $post->ID;
-
-
-		/**
-		 * Loading the saved settings from database
-		 *
-		 */
 		$wur_settings = new Wur_Settings();
 		$wur_settings->load();
 
-
-		$display_setting  = $wur_settings->getDisplaySettings();
-		$global_setting   = $wur_settings->getGlobalSettings();
-		$post_review_meta = Wur_Settings::get_xs_post_meta($this->getPostId, 'xs_review_overview_settings');
-
+		$display_setting = $wur_settings->getDisplaySettings();
 
 		if($wur_settings->is_review_enable_for_post_type($post->post_type)) {
 
-			$review_content = '';
-
-			if($wur_settings->is_author_review_enabled()) {
-
-				$post_review_meta = Wur_Settings::get_xs_post_meta($this->getPostId);
-
-				if(!empty($post_review_meta->overview->enable)) {
-
-					ob_start();
-
-					require(WUR_REVIEW_PLUGIN_PATH . 'views/public/meta-box-author-review.php');
-
-					$author_content = ob_get_contents();
-					ob_end_clean();
-
-					$review_content .= $author_content;
-				}
-
-			}
-
-
-			if($wur_settings->is_user_review_enabled()) {
-
-				ob_start();
-
-				require(WUR_REVIEW_PLUGIN_PATH . 'views/public/meta-box-user-review.php');
-
-				$author_content = ob_get_contents();
-				ob_end_clean();
-
-				$review_content .= $author_content;
-			}
-
-
 			$content_Position = isset($display_setting['review_location']) ? $display_setting['review_location'] : 'after_content';
+
+			// WooCommerce products show the reviews in the product "Reviews" tab instead (see Woocommerce class)
+			if(Woocommerce::is_product_tab_display($post, $content_Position)) {
+				return $content;
+			}
+
+			$review_content = $this->get_review_content($post);
 
 
 			if($content_Position == 'after_content') {
@@ -175,6 +135,85 @@ class Content {
 
 
 		return $content;
+	}
+
+
+	public function get_review_content($post) {
+
+		// output for display settings. Get from options
+		$this->getPostType = $post->post_type;
+		$this->getPostId   = $post->ID;
+
+
+		/**
+		 * Loading the saved settings from database
+		 *
+		 */
+		$wur_settings = new Wur_Settings();
+		$wur_settings->load();
+
+
+		$display_setting  = $wur_settings->getDisplaySettings();
+		$global_setting   = $wur_settings->getGlobalSettings();
+		$post_review_meta = Wur_Settings::get_xs_post_meta($this->getPostId, 'xs_review_overview_settings');
+
+		$review_content = '';
+
+		if($wur_settings->is_author_review_enabled()) {
+
+			$post_review_meta = Wur_Settings::get_xs_post_meta($this->getPostId);
+
+			if(!empty($post_review_meta->overview->enable)) {
+
+				ob_start();
+
+				require(WUR_REVIEW_PLUGIN_PATH . 'views/public/meta-box-author-review.php');
+
+				$author_content = ob_get_contents();
+				ob_end_clean();
+
+				$review_content .= $author_content;
+			}
+
+		}
+
+
+		if($wur_settings->is_user_review_enabled()) {
+
+			ob_start();
+
+			require(WUR_REVIEW_PLUGIN_PATH . 'views/public/meta-box-user-review.php');
+
+			$author_content = ob_get_contents();
+			ob_end_clean();
+
+			$review_content .= $author_content;
+		}
+
+		return $review_content;
+	}
+
+
+	/**
+	 * Neutralise any shortcode syntax in user-submitted review content.
+	 *
+	 * Escapes the shortcode delimiters "[" and "]" to their HTML entities so
+	 * the value can never be parsed as a shortcode by do_shortcode(), no matter
+	 * which shortcodes are registered or when. This is deliberately used instead
+	 * of strip_shortcodes(), which only removes a fixed set of known tags in a
+	 * single pass and is bypassable (split-tag re-forming, late-registered tags).
+	 *
+	 * @since 2.4.4
+	 * @access protected
+	 * @param string $value Raw review text.
+	 * @return string Text with shortcode brackets escaped.
+	 */
+	protected function wur_neutralise_shortcodes( $value ) {
+		if ( ! is_string( $value ) ) {
+			return '';
+		}
+
+		return str_replace( array( '[', ']' ), array( '&#91;', '&#93;' ), $value );
 	}
 
 
@@ -213,6 +252,13 @@ class Content {
 				}
 			}
 			
+			// GDPR: reject the review when consent is required but not given
+			if($wur_settings->is_gdpr_consent_enabled() && (!isset($_POST['xs_review_gdpr_consent']) || sanitize_text_field(wp_unslash($_POST['xs_review_gdpr_consent'])) !== 'yes')) {
+				$_SESSION['xs_review_message'] = __('Please accept the privacy consent to submit your review', 'wp-ultimate-review');
+
+				return false;
+			}
+
 			// get meta content data for review
 			$metaReviewData = isset($_POST[$content_meta_key]) ? $_POST[$content_meta_key] : []; //phpcs:ignore sanitization done in array with self custom function
 			$metaReviewData = Settings::sanitize($metaReviewData);
@@ -245,6 +291,59 @@ class Content {
 				// require data
 				// get display settings data
 				$return_data_display_setting = get_option('xs_review_display', '');
+
+				/**
+				 * Criteria based review (pro).
+				 *
+				 * The criteria names always come from the settings, never from the submitted form,
+				 * and every rating is clamped to the score limit. The average of the criteria is
+				 * stored as the overall rating, so the review list, the rating shortcode and the
+				 * WooCommerce product rating keep working without any change.
+				 */
+				$criteria_context = $wur_settings->get_criteria_review_context(get_post_type($main_post_id));
+
+				if(!empty($criteria_context['criteria'])) {
+
+					$submitted_criteria = (isset($metaReviewData['xs_criteria_ratings']) && is_array($metaReviewData['xs_criteria_ratings'])) ? $metaReviewData['xs_criteria_ratings'] : [];
+					$criteria_ratings   = [];
+					$criteria_sum       = 0;
+					$criteria_limit     = (int)$criteria_context['score_limit'];
+
+					foreach($criteria_context['criteria'] as $criteria_index => $criteria_name) {
+
+						$submitted_rating = isset($submitted_criteria[$criteria_index]['rating']) ? $submitted_criteria[$criteria_index]['rating'] : null;
+
+						if(!is_scalar($submitted_rating) || !is_numeric($submitted_rating)) {
+							continue;
+						}
+
+						$criteria_rating = (int)$submitted_rating;
+
+						if($criteria_rating < 1) {
+							continue;
+						}
+
+						$criteria_rating = min($criteria_rating, $criteria_limit);
+
+						$criteria_ratings[] = ['name' => $criteria_name, 'rating' => (string)$criteria_rating];
+						$criteria_sum       += $criteria_rating;
+					}
+
+					// at least one criterion has to be rated, the rest may be skipped
+					if(empty($criteria_ratings)) {
+						$_SESSION['xs_review_message'] = __('Please rate at least one criterion before submitting your review', 'wp-ultimate-review');
+
+						return false;
+					}
+
+					$metaReviewData['xs_criteria_ratings'] = $criteria_ratings;
+					$metaReviewData['xs_reviwer_ratting']  = (string)round($criteria_sum / count($criteria_ratings), 2);
+
+				} else {
+					// nothing submitted through the form can fake criteria data while the feature is off
+					unset($metaReviewData['xs_criteria_ratings']);
+				}
+
 
 				foreach($this->controls as $requireKey => $requireValue) :
 					$checkEnable = (isset($return_data_display_setting['form'][$requireKey]) && $return_data_display_setting['form'][$requireKey] == 'Yes') ? 'Yes' : 'No';
@@ -331,21 +430,45 @@ class Content {
 					$metaReviewData['review_score_input'] = isset($return_data_global_setting['review_score_input']) ? $return_data_global_setting['review_score_input'] : 'star';
 					$metaReviewData['xs_reviews_ip']      =  filter_var($ip, FILTER_VALIDATE_IP);
 					
-					//if someone try to bypass the review limit and submit the review with rating which is greater than review score limit then set rating to review score limit.
-					if( isset($metaReviewData['xs_reviwer_ratting']) && $metaReviewData['xs_reviwer_ratting'] > $metaReviewData['review_score_limit'] ){
-						$metaReviewData['xs_reviwer_ratting'] = $metaReviewData['review_score_limit'];
+					if ( isset( $metaReviewData['xs_reviwer_ratting'] ) ) {
+						if ( ! is_numeric( $metaReviewData['xs_reviwer_ratting'] ) ) {
+							$metaReviewData['xs_reviwer_ratting'] = 0;
+						}
+						$metaReviewData['xs_reviwer_ratting'] = (float) $metaReviewData['xs_reviwer_ratting'];
+						$score_limit_f = (float) $metaReviewData['review_score_limit'];
+						if ( $metaReviewData['xs_reviwer_ratting'] < 0 ) {
+							$metaReviewData['xs_reviwer_ratting'] = 0;
+						}
+						if ( $metaReviewData['xs_reviwer_ratting'] > $score_limit_f ) {
+							$metaReviewData['xs_reviwer_ratting'] = $score_limit_f;
+						}
 					}
 					
 					// create array for save post data in post table
 					$postarr                 = [];
-					// Security: strip shortcodes from attacker-controlled review content before
+					// Security: neutralise shortcodes in attacker-controlled review content before
 					// storing it as post_content. The xs_review CPT is publicly_queryable, so
 					// WordPress core's the_content filter runs do_shortcode() on this value for
-					// anyone viewing the review — without stripping, a submitter (including an
+					// anyone viewing the review — without neutralisation, a submitter (including an
 					// anonymous/unauthenticated visitor when the public review form is enabled)
-					// could execute arbitrary shortcodes. See CVE advisory for WP Ultimate Review <= 2.4.2.
-					$postarr['post_content'] = isset($metaReviewData['xs_reviw_summery']) ? strip_shortcodes( sanitize_textarea_field($metaReviewData['xs_reviw_summery']) ) : '';
-					$postarr['post_title']   = isset($metaReviewData['xs_reviw_title']) ? sanitize_text_field($metaReviewData['xs_reviw_title']) : '';
+					// could execute arbitrary shortcodes.
+					//
+					// strip_shortcodes() alone is insufficient: it is a single, non-idempotent
+					// regex pass over only the shortcodes registered at the moment it runs
+					// (this handler is on init:10). It can be defeated by splitting a tag around a
+					// copy of itself ([aud[audio]io ...] re-forms after the inner tag is removed)
+					// and it does not touch shortcodes registered later than init:10. Instead we
+					// escape the shortcode brackets outright, so no shortcode can ever form
+					// regardless of registration timing. Brackets render as literal characters.
+					$postarr['post_content'] = isset($metaReviewData['xs_reviw_summery']) ? $this->wur_neutralise_shortcodes( wp_kses( wp_specialchars_decode( sanitize_textarea_field($metaReviewData['xs_reviw_summery']) ), array() ) ) : '';
+					$postarr['post_title']   = isset($metaReviewData['xs_reviw_title']) ? $this->wur_neutralise_shortcodes( sanitize_text_field($metaReviewData['xs_reviw_title']) ) : '';
+
+					$text_meta_fields = array( 'xs_reviwer_name', 'xs_reviw_title', 'xs_reviw_summery', 'xs_reviwer_website' );
+					foreach ( $text_meta_fields as $field_key ) {
+						if ( isset( $metaReviewData[ $field_key ] ) && is_string( $metaReviewData[ $field_key ] ) ) {
+							$metaReviewData[ $field_key ] = $this->wur_neutralise_shortcodes( $metaReviewData[ $field_key ] );
+						}
+					}
 
 					if(!isset($return_data_global_setting['require_approval'])) :
 						$postarr['post_status'] = 'publish';
@@ -372,6 +495,11 @@ class Content {
 							update_post_meta($getPostId, 'xs_main_post_id', $metaReviewData['xs_post_id']);
 							update_post_meta($getPostId, 'xs_reviwer_email', isset($metaReviewData['xs_reviwer_email']) ? $metaReviewData['xs_reviwer_email'] : $ip);
 							update_post_meta($getPostId, 'xs_reviews_ip', $ip);
+
+							// keep a record of when the reviewer gave GDPR consent
+							if($wur_settings->is_gdpr_consent_enabled()) {
+								update_post_meta($getPostId, 'xs_review_gdpr_consent', current_time('mysql', true));
+							}
 
 							$_SESSION['xs_review_message'] = __('Successfully submitted review', 'wp-ultimate-review');
 							if($review_user_limit_by == 'browser') {
@@ -578,7 +706,8 @@ class Content {
 		// get global settings data
 		$return_data_global_setting = get_option('xs_review_global');
 
-		if($return_data_display_setting['review_location'] != 'custom_code') {
+		$review_location = isset( $return_data_display_setting['review_location'] ) ? $return_data_display_setting['review_location'] : 'after_content';
+		if($review_location != 'custom_code') {
 			if($postId == 0) {
 				return '';
 			}
@@ -603,8 +732,8 @@ class Content {
 		// get global settings data
 		$return_data_global_setting = get_option('xs_review_global');
 
-
-		if($return_data_display_setting['review_location'] != 'custom_code') {
+		$review_location = isset( $return_data_display_setting['review_location'] ) ? $return_data_display_setting['review_location'] : 'after_content';
+		if($review_location != 'custom_code') {
 			if($postId == 0) {
 				return '';
 			}
@@ -882,7 +1011,42 @@ class Content {
 	 * @since 1.0.0
 	 * @access public
 	 */
+	/**
+	 * Rating graph markup in the given style. Used by the free templates and by the pro plugin,
+	 * which renders the criteria ratings of a review.
+	 *
+	 * @since 2.4.4
+	 * @access public
+	 *
+	 * @param float|int $rat   the rating
+	 * @param float|int $max   the score limit
+	 * @param string    $style star, point, percentage or pie
+	 * @return string html, escape it with wp_kses(..., Settings::kses(null, true)) before printing
+	 */
+	public static function wur_rating_graph_html($rat = 0, $max = 5, $style = 'star') {
+
+		$rat = is_numeric($rat) ? (float)$rat : 0;
+		$max = (is_numeric($max) && (float)$max > 0) ? (float)$max : 5;
+
+		if($style === 'point') {
+			return self::wur_ratting_view_point_per($rat, $max);
+		}
+
+		if($style === 'percentage') {
+			return self::wur_ratting_view_percentange_per($rat, $max);
+		}
+
+		if($style === 'pie') {
+			return self::wur_ratting_view_pie_per($rat, $max);
+		}
+
+		return self::wur_ratting_view_star_point($rat, $max);
+	}
+
+
 	private static function wur_ratting_view_star_point($rat = 0, $max = 5) {
+		$rat = (float) $rat;
+		$max = max( 1, (float) $max );
 		$tarring = '';
 		$tarring .= '<div class="xs-review-rattting">';
 		$tarring .= '<span class="screen-rattting-text"> ' . esc_html(round($rat, 1)) . ' </span>';
@@ -922,6 +1086,8 @@ class Content {
 	 * @access private
 	 */
 	private static function wur_ratting_view_point_per($rat = 0, $max = 5) {
+		$rat = (float) $rat;
+		$max = max( 1, (float) $max );
 		$tarring   = '';
 		$tarring   .= '<div class="xs-review-rattting xs-percentange">';
 		$widthData = ($rat * 100) / $max;
@@ -942,6 +1108,8 @@ class Content {
 	 * @access private
 	 */
 	private static function wur_ratting_view_percentange_per($rat = 0, $max = 5) {
+		$rat = (float) $rat;
+		$max = max( 1, (float) $max );
 		$tarring   = '';
 		$tarring   .= '<div class="xs-review-rattting xs-percentange xs-point">';
 		$widthData = ($rat * 100) / $max;
@@ -962,6 +1130,8 @@ class Content {
 	 * @access private
 	 */
 	private static function wur_ratting_view_pie_per($rat = 0, $max = 5) {
+		$rat = (float) $rat;
+		$max = max( 1, (float) $max );
 		$tarring   = '';
 		$widthData = ($rat * 100) / $max;
 		$tarring   .= '<div class="xs-review-rattting xs-pie " style="--value: ' . $widthData . '%;">';

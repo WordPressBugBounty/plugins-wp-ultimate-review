@@ -218,6 +218,13 @@ if($review_list == 'Yes' || isset($post_review_meta->overview->ratting->enable))
 											echo wp_kses(self::wur_ratting_view_star_point($getMetaData->wur_reviwer_ratting, $reviwerStyleLimit), \WurReview\App\Settings::kses(null, true));
 										}
 									endif;
+
+									/**
+									 * Criteria based review (pro): the per criterion ratings of this review.
+									 * Reviews submitted before the feature existed carry no criteria data,
+									 * and the callback then prints nothing.
+									 */
+									do_action('wur_criteria_review_list', $getMetaData, $wur_settings->get_criteria_review_context($this->getPostType));
 								endif;
 
 
@@ -405,7 +412,18 @@ if($show_user_review_form): ?>
 
 					            <?php
 
-					            if(in_array($review_score_style_input, [
+					            /**
+					             * Criteria based review (pro): one rating input per criterion.
+					             * The single rating input below is used whenever the pro plugin,
+					             * the setting or the criteria list is missing.
+					             */
+					            $wur_criteria_context = $wur_settings->get_criteria_review_context($this->getPostType);
+
+					            if(!empty($wur_criteria_context['criteria']) && has_action('wur_criteria_rating_fields')):
+
+						            do_action('wur_criteria_rating_fields', $wur_criteria_context);
+
+					            elseif(in_array($review_score_style_input, [
 						            'star',
 						            'square',
 						            'movie',
@@ -436,7 +454,7 @@ if($show_user_review_form): ?>
 							                   value="1" <?php echo esc_attr($requireSet); ?> />
 						            </div>
 					            <?php endif;
-					            if($review_score_style_input == 'slider'):?>
+					            if((empty($wur_criteria_context['criteria']) || !has_action('wur_criteria_rating_fields')) && $review_score_style_input == 'slider'):?>
 						            <div class="xs-review-rating-slider text-center">
 							            <div class="xs-slidecontainer">
 								            <input type="range" min="1"
@@ -530,6 +548,8 @@ if($show_user_review_form): ?>
 		            }
 
 	            endforeach;
+
+				require WUR_REVIEW_PLUGIN_PATH . 'views/public/gdpr-consent.php';
 
 				//this hooks called from pro version
 				do_action('wur_recaptcha_show');

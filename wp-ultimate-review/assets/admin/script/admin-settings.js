@@ -40,40 +40,79 @@ function responseMessage(msg) {
 jQuery(document).ready(function(){
 	click_xs_review_data();
 });
+
+// highlight the first `rating` items of a criteria rating list
+function xs_review_paint_stars($list, rating){
+	$list.children('li.star-li').each(function(index){
+		jQuery(this).toggleClass('selected', index < rating);
+	});
+}
+
+// Delegated handlers so rows added later through the repeater work as well.
+// Bound only once, even if called multiple times.
 function click_xs_review_data(){
-	jQuery('#xs_review_stars li').on('mouseover', function(){
+	if (click_xs_review_data.bound) {
+		return;
+	}
+	click_xs_review_data.bound = true;
+
+	var $doc = jQuery(document);
+
+	$doc.on('mouseover', '.xs_review_stars li.star-li', function(){
 		var onStar = parseInt(jQuery(this).data('value'), 10); // The star currently mouse on
-	   jQuery(this).parent().children('li.star-li').each(function(e){
-		  if (e < onStar) {
-			jQuery(this).addClass('hover');
-		  }
-		  else {
-			jQuery(this).removeClass('hover');
-		  }
+		jQuery(this).parent().children('li.star-li').each(function(index){
+			jQuery(this).toggleClass('hover', index < onStar);
 		});
-		
-	  }).on('mouseout', function(){
-		jQuery(this).parent().children('li.star-li').each(function(e){
-		  jQuery(this).removeClass('hover');
-		});
-	  });
-  
-  
-  jQuery('#xs_review_stars li').on('click', function(){
-    var onStar = parseInt(jQuery(this).data('value'), 10); // The star currently selected
-    var stars = jQuery(this).parent().children('li.star-li');
-    
-    for (i = 0; i < stars.length; i++) {
-      jQuery(stars[i]).removeClass('selected');
-    }
-    
-    for (i = 0; i < onStar; i++) {
-      jQuery(stars[i]).addClass('selected');
-    }
-    
-    var displayId = jQuery(this).parent().parent().children('input.right-review-ratting');
-	displayId.val(onStar);
-  });
+	}).on('mouseout', '.xs_review_stars li.star-li', function(){
+		jQuery(this).parent().children('li.star-li').removeClass('hover');
+	});
+
+	$doc.on('click', '.xs_review_stars li.star-li', function(){
+		var onStar = parseInt(jQuery(this).data('value'), 10); // The star currently selected
+		var $list  = jQuery(this).parent();
+
+		xs_review_paint_stars($list, onStar);
+		$list.siblings('input.right-review-ratting').val(onStar);
+	});
+
+	// typing a rating in the number field updates the stars
+	$doc.on('input change', 'input.right-review-ratting', function(){
+		var $input = jQuery(this);
+		var $list  = $input.siblings('.xs_review_stars');
+		var max    = $list.children('li.star-li').length;
+		var rating = parseInt($input.val(), 10);
+
+		if (isNaN(rating)) {
+			rating = 0;
+		}
+
+		if (rating > max) {
+			rating = max;
+			$input.val(max);
+		}
+
+		xs_review_paint_stars($list, rating);
+	});
+}
+
+// Reset a newly added criteria row so its stars match its (cleared) rating input.
+function xs_review_after_add_item($row){
+	$row.find('input.right-review-ratting').each(function(){
+		var $input  = jQuery(this);
+		var $list   = $input.siblings('.xs_review_stars');
+		var initial = parseInt($input.attr('data-default'), 10) || 1;
+
+		$input.val(initial);
+		xs_review_paint_stars($list, initial);
+	});
+
+	$row.find('input.xs-slider-range').each(function(){
+		var $slider = jQuery(this);
+		var initial = parseInt($slider.attr('data-default'), 10) || 1;
+
+		$slider.val(initial);
+		$slider.parent().parent().children('#review_data_show').html(initial);
+	});
 }
 
 /*Slider range*/
@@ -96,6 +135,11 @@ jQuery(document).ready(function($){
 	// Review form settings
 	$('.wur-review-form-item').on('change', '.review_switch_button', function(){
 		$(this).parents('.wur-review-form-item').find('.display-show-review-type').fadeToggle().toggleClass('active_tr');
+	});
+
+	// GDPR consent settings
+	$('.wur-gdpr-consent-switch').on('change', function(){
+		$('.wur-gdpr-consent-text-wrapper').toggle(this.checked);
 	});
 
 	// captcha settings
